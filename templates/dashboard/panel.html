@@ -7,7 +7,7 @@
 <!-- Crear Categoría -->
 <div style="border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
     <h3 style="color: #4DCFCF;">Crear Nueva Categoría</h3>
-    <form method="POST" action="{{ url_for('dashboard.crear_categoria') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('dashboard_crear_categoria') }}" enctype="multipart/form-data">
         <input type="text" name="name" placeholder="Nombre de la categoría" required 
                style="padding: 8px; width: 300px; margin: 5px;"><br>
         <textarea name="description" placeholder="Descripción (opcional)" 
@@ -35,11 +35,11 @@
                 {% endif %}
             </div>
             <div style="display: flex; gap: 8px;">
-                <a href="{{ url_for('dashboard.editar_categoria', category_id=category.id) }}" 
+                <a href="{{ url_for('dashboard_editar_categoria', category_id=category.id) }}" 
                    style="background: #EB51A2; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 12px; transition: all 0.3s ease;">
                      Editar
                 </a>
-                <form method="POST" action="{{ url_for('dashboard.eliminar_categoria', category_id=category.id) }}" 
+                <form method="POST" action="{{ url_for('dashboard_eliminar_categoria', category_id=category.id) }}" 
                       onsubmit="return confirm('¿Estás segura de eliminar la categoría &quot;{{ category.name }}&quot; y sus {{ category.images|length }} imágenes?')"
                       style="margin: 0;">
                     <button type="submit" 
@@ -57,7 +57,7 @@
         {% endif %}
         
         <!-- Subir Imagen a esta categoría -->
-        <form method="POST" action="{{ url_for('dashboard.subir_imagen', category_id=category.id) }}" 
+        <form method="POST" action="{{ url_for('dashboard_subir_imagen', category_id=category.id) }}" 
               enctype="multipart/form-data" style="margin: 15px 0;">
             <input type="text" name="title" placeholder="Título de la imagen (opcional)" 
                    style="padding: 5px; margin: 5px;">
@@ -76,7 +76,7 @@
                 {% if image.title %}
                 <p style="margin: 5px 0; font-size: 12px;">{{ image.title }}</p>
                 {% endif %}
-                <form method="POST" action="{{ url_for('dashboard.eliminar_imagen', image_id=image.id) }}" 
+                <form method="POST" action="{{ url_for('dashboard_eliminar_imagen', image_id=image.id) }}" 
                       onsubmit="return confirm('¿Eliminar esta imagen?')">
                     <button type="submit" style="background: red; color: white; border: none; padding: 2px 8px;">
                         Eliminar
@@ -97,5 +97,6 @@
 <div style="margin-top: 20px;">
     <a href="{{ url_for('public.home') }}" style="color: #4DCFCF;">← Volver al sitio público</a>
 </div>
+
 
 {% endblock %}
