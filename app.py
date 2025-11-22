@@ -53,7 +53,6 @@ def load_user(user_id):
 def init_db():
     with app.app_context():
         db.create_all()
-        # Crear usuario admin si no existe
         admin = User.query.filter_by(username='admin').first()
         if not admin:
             admin_user = User(username='admin', is_admin=True)
@@ -62,7 +61,6 @@ def init_db():
             db.session.commit()
             print("✅ Usuario admin creado: admin / admin123")
 
-# LLAMAR INICIALIZACIÓN
 init_db()
 
 # Utilidades
@@ -73,12 +71,12 @@ def allowed_file(filename):
 @app.route('/')
 def home():
     proyectos = Proyecto.query.all()
-    return render_template('public/index.html', categories=proyectos)  # Mantener categories para compatibilidad
+    return render_template('public/index.html', categories=proyectos)
 
-@app.route('/proyecto/<int:proyecto_id>')
-def proyecto_detalle(proyecto_id):
-    proyecto = Proyecto.query.get_or_404(proyecto_id)
-    return render_template('public/proyecto_detalle.html', proyecto=proyecto)
+@app.route('/category/<int:category_id>')
+def category_detail(category_id):
+    proyecto = Proyecto.query.get_or_404(category_id)
+    return render_template('public/category.html', category=proyecto)
 
 # Rutas de Autenticación
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -89,8 +87,7 @@ def auth_login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('dashboard_panel'))
+            return redirect(url_for('dashboard_panel'))
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     return render_template('auth/login.html')
@@ -101,29 +98,24 @@ def auth_logout():
     logout_user()
     return redirect(url_for('home'))
 
-# Dashboard
+# Dashboard Principal
 @app.route('/dashboard')
 @login_required
 def dashboard_panel():
     proyectos = Proyecto.query.all()
-    return render_template('dashboard/panel.html', categories=proyectos)  # Mantener categories para compatibilidad
+    return render_template('dashboard/panel.html', categories=proyectos)
 
-@app.route('/dashboard/proyectos')
+# Crear Proyecto (desde panel)
+@app.route('/dashboard/crear_proyecto', methods=['POST'])
 @login_required
-def dashboard_proyectos():
-    proyectos = Proyecto.query.all()
-    return render_template('dashboard/proyecto_listado.html', proyectos=proyectos)
-
-@app.route('/dashboard/proyecto/crear', methods=['GET', 'POST'])
-@login_required
-def dashboard_proyecto_crear():
-    if request.method == 'POST':
+def crear_proyecto():
+    try:
         name = request.form.get('name')
         description = request.form.get('description')
         
         if not name:
             flash('El nombre es obligatorio', 'error')
-            return redirect(url_for('dashboard_proyectos'))
+            return redirect(url_for('dashboard_panel'))
 
         nuevo_proyecto = Proyecto(name=name, description=description)
         
@@ -137,166 +129,111 @@ def dashboard_proyecto_crear():
         db.session.add(nuevo_proyecto)
         db.session.commit()
         flash('Proyecto creado exitosamente!', 'success')
-        return redirect(url_for('dashboard_proyectos'))
+    except Exception as e:
+        flash(f'Error al crear proyecto: {str(e)}', 'error')
     
-    return render_template('dashboard/proyecto_crear.html')
-
-@app.route('/dashboard/proyecto/editar/<int:proyecto_id>', methods=['GET', 'POST'])
-@login_required
-def dashboard_proyecto_editar(proyecto_id):
-    proyecto = Proyecto.query.get_or_404(proyecto_id)
-    
-    if request.method == 'POST':
-        proyecto.name = request.form.get('name')
-        proyecto.description = request.form.get('description')
-        
-        if 'cover_image' in request.files:
-            file = request.files['cover_image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                if proyecto.cover_image:
-                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
-                    if os.path.exists(old_image_path):
-                        os.remove(old_image_path)
-                
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                proyecto.cover_image = filename
-        
-        db.session.commit()
-        flash('Proyecto actualizado exitosamente!', 'success')
-        return redirect(url_for('dashboard_proyectos'))
-    
-    return render_template('dashboard/proyecto_editar.html', proyecto=proyecto)
-
-@app.route('/dashboard/proyecto/eliminar/<int:proyecto_id>', methods=['POST'])
-@login_required
-def dashboard_proyecto_eliminar(proyecto_id):
-    proyecto = Proyecto.query.get_or_404(proyecto_id)
-    
-    if proyecto.cover_image:
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
-        if os.path.exists(cover_path):
-            os.remove(cover_path)
-    
-    for image in proyecto.images:
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-        if os.path.exists(image_path):
-            os.remove(image_path)
-    
-    db.session.delete(proyecto)
-    db.session.commit()
-    
-    flash('Proyecto eliminado exitosamente!', 'success')
-    return redirect(url_for('dashboard_proyectos'))
-
-# Rutas para imágenes (compatibilidad con panel.html)
-@app.route('/dashboard/crear_proyecto', methods=['POST'])
-@login_required
-def crear_proyecto():
-    name = request.form.get('name')
-    description = request.form.get('description')
-    
-    if not name:
-        flash('El nombre es obligatorio', 'error')
-        return redirect(url_for('dashboard_panel'))
-
-    nuevo_proyecto = Proyecto(name=name, description=description)
-    
-    if 'cover_image' in request.files:
-        file = request.files['cover_image']
-        if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            nuevo_proyecto.cover_image = filename
-    
-    db.session.add(nuevo_proyecto)
-    db.session.commit()
-    flash('Proyecto creado exitosamente!', 'success')
     return redirect(url_for('dashboard_panel'))
 
+# Subir Imágenes
 @app.route('/dashboard/subir_imagen/<int:proyecto_id>', methods=['POST'])
 @login_required
 def subir_imagen(proyecto_id):
-    files = request.files.getlist('image')
-    title = request.form.get('title')
+    try:
+        files = request.files.getlist('image')
+        title = request.form.get('title')
 
-    if not files or all(file.filename == '' for file in files):
-        flash('Selecciona al menos una imagen', 'error')
-        return redirect(url_for('dashboard_panel'))
+        if not files or all(file.filename == '' for file in files):
+            flash('Selecciona al menos una imagen', 'error')
+            return redirect(url_for('dashboard_panel'))
 
-    uploaded_count = 0
-    for file in files:
-        if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(upload_path)
-            img = Image(filename=filename, proyecto_id=proyecto_id, title=title)
-            db.session.add(img)
-            uploaded_count += 1
+        uploaded_count = 0
+        for file in files:
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(upload_path)
+                img = Image(filename=filename, proyecto_id=proyecto_id, title=title)
+                db.session.add(img)
+                uploaded_count += 1
 
-    if uploaded_count > 0:
-        db.session.commit()
-        flash(f'✅ {uploaded_count} imagen(es) subida(s) exitosamente!', 'success')
-    else:
-        flash('❌ No se pudieron subir las imágenes', 'error')
-
+        if uploaded_count > 0:
+            db.session.commit()
+            flash(f'✅ {uploaded_count} imagen(es) subida(s) exitosamente!', 'success')
+        else:
+            flash('❌ No se pudieron subir las imágenes', 'error')
+    except Exception as e:
+        flash(f'Error al subir imágenes: {str(e)}', 'error')
+    
     return redirect(url_for('dashboard_panel'))
 
+# Eliminar Imagen
 @app.route('/dashboard/eliminar_imagen/<int:image_id>', methods=['POST'])
 @login_required
 def eliminar_imagen(image_id):
-    img = Image.query.get_or_404(image_id)
-    db.session.delete(img)
-    db.session.commit()
-    flash('Imagen eliminada exitosamente!', 'success')
+    try:
+        img = Image.query.get_or_404(image_id)
+        db.session.delete(img)
+        db.session.commit()
+        flash('Imagen eliminada exitosamente!', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar imagen: {str(e)}', 'error')
+    
     return redirect(url_for('dashboard_panel'))
 
+# Editar Proyecto
 @app.route('/dashboard/editar_proyecto/<int:proyecto_id>', methods=['GET', 'POST'])
 @login_required
 def editar_proyecto(proyecto_id):
     proyecto = Proyecto.query.get_or_404(proyecto_id)
     
     if request.method == 'POST':
-        proyecto.name = request.form.get('name')
-        proyecto.description = request.form.get('description')
-        
-        if 'cover_image' in request.files:
-            file = request.files['cover_image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                if proyecto.cover_image:
-                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
-                    if os.path.exists(old_image_path):
-                        os.remove(old_image_path)
-                
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                proyecto.cover_image = filename
-        
-        db.session.commit()
-        flash('Proyecto actualizado exitosamente!', 'success')
-        return redirect(url_for('dashboard_panel'))
+        try:
+            proyecto.name = request.form.get('name')
+            proyecto.description = request.form.get('description')
+            
+            if 'cover_image' in request.files:
+                file = request.files['cover_image']
+                if file and file.filename != '' and allowed_file(file.filename):
+                    if proyecto.cover_image:
+                        old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
+                        if os.path.exists(old_image_path):
+                            os.remove(old_image_path)
+                    
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    proyecto.cover_image = filename
+            
+            db.session.commit()
+            flash('Proyecto actualizado exitosamente!', 'success')
+            return redirect(url_for('dashboard_panel'))
+        except Exception as e:
+            flash(f'Error al actualizar proyecto: {str(e)}', 'error')
     
     return render_template('dashboard/editar_proyecto.html', proyecto=proyecto)
 
+# Eliminar Proyecto
 @app.route('/dashboard/eliminar_proyecto/<int:proyecto_id>', methods=['POST'])
 @login_required
 def eliminar_proyecto(proyecto_id):
-    proyecto = Proyecto.query.get_or_404(proyecto_id)
+    try:
+        proyecto = Proyecto.query.get_or_404(proyecto_id)
+        
+        if proyecto.cover_image:
+            cover_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+        
+        for image in proyecto.images:
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        
+        db.session.delete(proyecto)
+        db.session.commit()
+        flash('Proyecto eliminado exitosamente!', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar proyecto: {str(e)}', 'error')
     
-    if proyecto.cover_image:
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
-        if os.path.exists(cover_path):
-            os.remove(cover_path)
-    
-    for image in proyecto.images:
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-        if os.path.exists(image_path):
-            os.remove(image_path)
-    
-    db.session.delete(proyecto)
-    db.session.commit()
-    
-    flash('Proyecto eliminado exitosamente!', 'success')
     return redirect(url_for('dashboard_panel'))
 
 if __name__ == '__main__':
