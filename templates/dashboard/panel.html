@@ -4,25 +4,25 @@
 <h2 style="color: #EB51A2;">Panel de Administración</h2>
 <p>Bienvenida al dashboard, {{ current_user.username }}!</p>
 
-<!-- Crear Categoría -->
+<!-- Crear Proyecto -->
 <div style="border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-    <h3 style="color: #4DCFCF;">Crear Nueva Categoría</h3>
-    <form method="POST" action="{{ url_for('crear_categoria') }}" enctype="multipart/form-data">
-        <input type="text" name="name" placeholder="Nombre de la categoría" required 
+    <h3 style="color: #4DCFCF;">Crear Nuevo Proyecto</h3>
+    <form method="POST" action="{{ url_for('crear_proyecto') }}" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Nombre del proyecto" required 
                style="padding: 8px; width: 300px; margin: 5px;"><br>
         <textarea name="description" placeholder="Descripción (opcional)" 
                   style="padding: 8px; width: 300px; margin: 5px; height: 60px;"></textarea><br>
         <input type="file" name="cover_image" accept="image/*" style="margin: 5px;">
         <small>Imagen de portada (opcional)</small><br>
         <button type="submit" style="background: #EB51A2; color: white; padding: 8px 15px; border: none; border-radius: 5px;">
-            Crear Categoría
+            Crear Proyecto
         </button>
     </form>
 </div>
 
-<!-- Lista de Categorías -->
+<!-- Lista de Proyectos -->
 <div style="border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
-    <h3 style="color: #4DCFCF;">Tus Categorías</h3>
+    <h3 style="color: #4DCFCF;">Tus Proyectos</h3>
     
     {% for category in categories %}
     <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px;">
@@ -35,12 +35,12 @@
                 {% endif %}
             </div>
             <div style="display: flex; gap: 8px;">
-                <a href="{{ url_for('editar_categoria', category_id=category.id) }}" 
+                <a href="{{ url_for('editar_proyecto', proyecto_id=category.id) }}" 
                    style="background: #EB51A2; color: white; padding: 6px 12px; border-radius: 5px; text-decoration: none; font-size: 12px; transition: all 0.3s ease;">
                      Editar
                 </a>
-                <form method="POST" action="{{ url_for('eliminar_categoria', category_id=category.id) }}" 
-                      onsubmit="return confirm('¿Estás segura de eliminar la categoría &quot;{{ category.name }}&quot; y sus {{ category.images|length }} imágenes?')"
+                <form method="POST" action="{{ url_for('eliminar_proyecto', proyecto_id=category.id) }}" 
+                      onsubmit="return confirm('¿Estás segura de eliminar el proyecto &quot;{{ category.name }}&quot; y sus {{ category.images|length }} imágenes?')"
                       style="margin: 0;">
                     <button type="submit" 
                             style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: all 0.3s ease;">
@@ -56,8 +56,8 @@
              style="width: 150px; height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px;">
         {% endif %}
         
-        <!-- Subir Imagen a esta categoría -->
-        <form method="POST" action="{{ url_for('subir_imagen', category_id=category.id) }}" 
+        <!-- Subir Imagen a este proyecto -->
+        <form method="POST" action="{{ url_for('subir_imagen', proyecto_id=category.id) }}" 
               enctype="multipart/form-data" style="margin: 15px 0;">
             <input type="text" name="title" placeholder="Título de la imagen (opcional)" 
                    style="padding: 5px; margin: 5px;">
@@ -67,7 +67,7 @@
             </button>
         </form>
         
-        <!-- Mostrar Imágenes de la categoría -->
+        <!-- Mostrar Imágenes del proyecto -->
         <div style="display: flex; flex-wrap: wrap; gap: 10px;">
             {% for image in category.images %}
             <div style="text-align: center;">
@@ -84,20 +84,18 @@
                 </form>
             </div>
             {% else %}
-            <p style="color: #666;">No hay imágenes en esta categoría</p>
+            <p style="color: #666;">No hay imágenes en este proyecto</p>
             {% endfor %}
         </div>
     </div>
     {% else %}
-    <p style="color: #666;">No hay categorías creadas aún</p>
+    <p style="color: #666;">No hay proyectos creados aún</p>
     {% endfor %}
 </div>
 
 <!-- Enlace para volver al sitio público -->
 <div style="margin-top: 20px;">
-    <a href="{{ url_for('public.home') }}" style="color: #4DCFCF;">← Volver al sitio público</a>
+    <a href="{{ url_for('home') }}" style="color: #4DCFCF;">← Volver al sitio público</a>
 </div>
 
-
 {% endblock %}
-
