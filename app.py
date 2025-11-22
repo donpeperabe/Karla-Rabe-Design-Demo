@@ -29,18 +29,18 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-class Category(db.Model):
+class Proyecto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     cover_image = db.Column(db.String(255), nullable=True)
-    images = db.relationship('Image', backref='category', lazy=True, cascade='all, delete')
+    images = db.relationship('Image', backref='proyecto', lazy=True, cascade='all, delete')
 
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
     title = db.Column(db.String(200), nullable=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
 
 # Configuración Login
 login_manager.login_view = 'auth_login'
@@ -72,13 +72,13 @@ def allowed_file(filename):
 # Rutas Públicas
 @app.route('/')
 def home():
-    categories = Category.query.all()
-    return render_template('public/index.html', categories=categories)
+    proyectos = Proyecto.query.all()
+    return render_template('public/index.html', categories=proyectos)  # Mantener categories para compatibilidad
 
-@app.route('/category/<int:category_id>')
-def category_detail(category_id):
-    category = Category.query.get_or_404(category_id)
-    return render_template('public/category.html', category=category)
+@app.route('/proyecto/<int:proyecto_id>')
+def proyecto_detalle(proyecto_id):
+    proyecto = Proyecto.query.get_or_404(proyecto_id)
+    return render_template('public/proyecto_detalle.html', proyecto=proyecto)
 
 # Rutas de Autenticación
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -105,12 +105,94 @@ def auth_logout():
 @app.route('/dashboard')
 @login_required
 def dashboard_panel():
-    categories = Category.query.all()
-    return render_template('dashboard/panel.html', categories=categories)
+    proyectos = Proyecto.query.all()
+    return render_template('dashboard/panel.html', categories=proyectos)  # Mantener categories para compatibilidad
 
-@app.route('/dashboard/crear_categoria', methods=['POST'])
+@app.route('/dashboard/proyectos')
 @login_required
-def crear_categoria():
+def dashboard_proyectos():
+    proyectos = Proyecto.query.all()
+    return render_template('dashboard/proyecto_listado.html', proyectos=proyectos)
+
+@app.route('/dashboard/proyecto/crear', methods=['GET', 'POST'])
+@login_required
+def dashboard_proyecto_crear():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        
+        if not name:
+            flash('El nombre es obligatorio', 'error')
+            return redirect(url_for('dashboard_proyectos'))
+
+        nuevo_proyecto = Proyecto(name=name, description=description)
+        
+        if 'cover_image' in request.files:
+            file = request.files['cover_image']
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                nuevo_proyecto.cover_image = filename
+        
+        db.session.add(nuevo_proyecto)
+        db.session.commit()
+        flash('Proyecto creado exitosamente!', 'success')
+        return redirect(url_for('dashboard_proyectos'))
+    
+    return render_template('dashboard/proyecto_crear.html')
+
+@app.route('/dashboard/proyecto/editar/<int:proyecto_id>', methods=['GET', 'POST'])
+@login_required
+def dashboard_proyecto_editar(proyecto_id):
+    proyecto = Proyecto.query.get_or_404(proyecto_id)
+    
+    if request.method == 'POST':
+        proyecto.name = request.form.get('name')
+        proyecto.description = request.form.get('description')
+        
+        if 'cover_image' in request.files:
+            file = request.files['cover_image']
+            if file and file.filename != '' and allowed_file(file.filename):
+                if proyecto.cover_image:
+                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
+                    if os.path.exists(old_image_path):
+                        os.remove(old_image_path)
+                
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                proyecto.cover_image = filename
+        
+        db.session.commit()
+        flash('Proyecto actualizado exitosamente!', 'success')
+        return redirect(url_for('dashboard_proyectos'))
+    
+    return render_template('dashboard/proyecto_editar.html', proyecto=proyecto)
+
+@app.route('/dashboard/proyecto/eliminar/<int:proyecto_id>', methods=['POST'])
+@login_required
+def dashboard_proyecto_eliminar(proyecto_id):
+    proyecto = Proyecto.query.get_or_404(proyecto_id)
+    
+    if proyecto.cover_image:
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
+        if os.path.exists(cover_path):
+            os.remove(cover_path)
+    
+    for image in proyecto.images:
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    
+    db.session.delete(proyecto)
+    db.session.commit()
+    
+    flash('Proyecto eliminado exitosamente!', 'success')
+    return redirect(url_for('dashboard_proyectos'))
+
+# Rutas para imágenes (compatibilidad con panel.html)
+@app.route('/dashboard/crear_proyecto', methods=['POST'])
+@login_required
+def crear_proyecto():
     name = request.form.get('name')
     description = request.form.get('description')
     
@@ -118,23 +200,23 @@ def crear_categoria():
         flash('El nombre es obligatorio', 'error')
         return redirect(url_for('dashboard_panel'))
 
-    new_cat = Category(name=name, description=description)
+    nuevo_proyecto = Proyecto(name=name, description=description)
     
     if 'cover_image' in request.files:
         file = request.files['cover_image']
         if file and file.filename != '' and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            new_cat.cover_image = filename
+            nuevo_proyecto.cover_image = filename
     
-    db.session.add(new_cat)
+    db.session.add(nuevo_proyecto)
     db.session.commit()
-    flash('Categoría creada exitosamente!', 'success')
+    flash('Proyecto creado exitosamente!', 'success')
     return redirect(url_for('dashboard_panel'))
 
-@app.route('/dashboard/subir_imagen/<int:category_id>', methods=['POST'])
+@app.route('/dashboard/subir_imagen/<int:proyecto_id>', methods=['POST'])
 @login_required
-def subir_imagen(category_id):
+def subir_imagen(proyecto_id):
     files = request.files.getlist('image')
     title = request.form.get('title')
 
@@ -148,7 +230,7 @@ def subir_imagen(category_id):
             filename = secure_filename(file.filename)
             upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(upload_path)
-            img = Image(filename=filename, category_id=category_id, title=title)
+            img = Image(filename=filename, proyecto_id=proyecto_id, title=title)
             db.session.add(img)
             uploaded_count += 1
 
@@ -169,52 +251,52 @@ def eliminar_imagen(image_id):
     flash('Imagen eliminada exitosamente!', 'success')
     return redirect(url_for('dashboard_panel'))
 
-@app.route('/dashboard/editar_categoria/<int:category_id>', methods=['GET', 'POST'])
+@app.route('/dashboard/editar_proyecto/<int:proyecto_id>', methods=['GET', 'POST'])
 @login_required
-def editar_categoria(category_id):
-    category = Category.query.get_or_404(category_id)
+def editar_proyecto(proyecto_id):
+    proyecto = Proyecto.query.get_or_404(proyecto_id)
     
     if request.method == 'POST':
-        category.name = request.form.get('name')
-        category.description = request.form.get('description')
+        proyecto.name = request.form.get('name')
+        proyecto.description = request.form.get('description')
         
         if 'cover_image' in request.files:
             file = request.files['cover_image']
             if file and file.filename != '' and allowed_file(file.filename):
-                if category.cover_image:
-                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], category.cover_image)
+                if proyecto.cover_image:
+                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
                     if os.path.exists(old_image_path):
                         os.remove(old_image_path)
                 
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                category.cover_image = filename
+                proyecto.cover_image = filename
         
         db.session.commit()
-        flash('Categoría actualizada exitosamente!', 'success')
+        flash('Proyecto actualizado exitosamente!', 'success')
         return redirect(url_for('dashboard_panel'))
     
-    return render_template('dashboard/editar_categoria.html', category=category)
+    return render_template('dashboard/editar_proyecto.html', proyecto=proyecto)
 
-@app.route('/dashboard/eliminar_categoria/<int:category_id>', methods=['POST'])
+@app.route('/dashboard/eliminar_proyecto/<int:proyecto_id>', methods=['POST'])
 @login_required
-def eliminar_categoria(category_id):
-    category = Category.query.get_or_404(category_id)
+def eliminar_proyecto(proyecto_id):
+    proyecto = Proyecto.query.get_or_404(proyecto_id)
     
-    if category.cover_image:
-        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], category.cover_image)
+    if proyecto.cover_image:
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.cover_image)
         if os.path.exists(cover_path):
             os.remove(cover_path)
     
-    for image in category.images:
+    for image in proyecto.images:
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
         if os.path.exists(image_path):
             os.remove(image_path)
     
-    db.session.delete(category)
+    db.session.delete(proyecto)
     db.session.commit()
     
-    flash('Categoría eliminada exitosamente!', 'success')
+    flash('Proyecto eliminado exitosamente!', 'success')
     return redirect(url_for('dashboard_panel'))
 
 if __name__ == '__main__':
