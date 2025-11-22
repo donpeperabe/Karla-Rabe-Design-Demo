@@ -11,7 +11,7 @@
         <div class="header-top">
             {% if current_user.is_authenticated %}
             <div class="user-menu">
-                <a href="{{ url_for('dashboard') }}" class="user-link">Hola, {{ current_user.username }}</a>
+                <a href="{{ url_for('dashboard_panel') }}" class="user-link">Hola, {{ current_user.username }}</a>
                 <a href="{{ url_for('auth.logout') }}" class="logout-btn">Cerrar Sesión</a>
             </div>
             {% else %}
@@ -64,4 +64,5 @@
     </script>
 </body>
 </html>
+
 
