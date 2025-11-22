@@ -4,7 +4,7 @@
 <div class="dashboard-section">
     <h2>Editar Categoría</h2>
     
-    <form method="POST" action="{{ url_for('dashboard_editar_categoria', category_id=category.id) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('editar_categoria', category_id=category.id) }}" enctype="multipart/form-data">
         <div class="form-group">
             <label for="name">Nombre de la categoría:</label>
             <input type="text" id="name" name="name" value="{{ category.name }}" required>
@@ -59,3 +59,4 @@
 
 
 {% endblock %}
+
