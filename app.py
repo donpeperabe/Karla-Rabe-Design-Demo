@@ -73,7 +73,7 @@ def allowed_file(filename):
 @app.route('/')
 def home():
     categories = Category.query.all()
-    return render_template('index.html', categories=categories)
+    return render_template('public/index.html', categories=categories)
 
 @app.route('/category/<int:category_id>')
 def category_detail(category_id):
@@ -174,3 +174,4 @@ if __name__ == '__main__':
         os.makedirs(app.config['UPLOAD_FOLDER'])
     
     app.run(host='0.0.0.0', port=5000, debug=True)
+
