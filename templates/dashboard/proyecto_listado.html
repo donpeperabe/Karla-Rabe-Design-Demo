@@ -2,7 +2,7 @@
 {% block title %}Proyectos - Dashboard{% endblock %}
 {% block content %}
 <h2>Proyectos</h2>
-<a href="{{ url_for('dashboard.proyecto_crear') }}">Crear nuevo proyecto</a>
+<a href="{{ url_for('dashboard_proyecto_crear') }}">Crear nuevo proyecto</a>
 
 <div class="projects-grid">
   {% for p in proyectos %}
@@ -14,8 +14,8 @@
     {% endif %}
     <h3>{{ p.title }}</h3>
     <p>{{ p.description[:120] if p.description else '' }}</p>
-    <a href="{{ url_for('dashboard.proyecto_editar', project_id=p.id) }}">Editar</a>
-    <form method="POST" action="{{ url_for('dashboard.proyecto_eliminar', project_id=p.id) }}" style="display:inline-block;">
+    <a href="{{ url_for('dashboard_proyecto_editar', project_id=p.id) }}">Editar</a>
+    <form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', project_id=p.id) }}" style="display:inline-block;">
       <button onclick="return confirm('Eliminar proyecto?');">Eliminar</button>
     </form>
     <a href="{{ url_for('public.proyecto_detalle', project_id=p.id) }}" target="_blank">Ver público</a>
@@ -23,3 +23,4 @@
   {% endfor %}
 </div>
 {% endblock %}
+
