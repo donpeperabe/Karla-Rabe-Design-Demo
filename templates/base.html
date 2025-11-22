@@ -11,12 +11,12 @@
         <div class="header-top">
             {% if current_user.is_authenticated %}
             <div class="user-menu">
-                <a href="{{ url_for('dashboard.panel') }}" class="user-link">Hola, {{ current_user.username }}</a>
-                <a href="{{ url_for('auth.logout') }}" class="logout-btn">Cerrar Sesión</a>
+                <a href="{{ url_for('dashboard') }}" class="user-link">Hola, {{ current_user.username }}</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Cerrar Sesión</a>
             </div>
             {% else %}
             <div class="user-menu">
-                <a href="{{ url_for('auth.login') }}" class="login-btn">Admin Login</a>
+                <a href="{{ url_for('login') }}" class="login-btn">Admin Login</a>
             </div>
             {% endif %}
         </div>
@@ -28,8 +28,8 @@
         </div>
         
         <nav>
-            <a href="{{ url_for('public.home') }}">Inicio</a>
-            <a href="{{ url_for('public.home') }}#catalogos">Catálogos</a>
+            <a href="{{ url_for('home') }}">Inicio</a>
+            <a href="{{ url_for('home') }}#catalogos">Catálogos</a>
         </nav>
     </header>
 
