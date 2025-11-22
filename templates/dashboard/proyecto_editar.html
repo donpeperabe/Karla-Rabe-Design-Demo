@@ -4,31 +4,25 @@
 <h2>Editar proyecto</h2>
 <form method="POST" enctype="multipart/form-data">
   <label>Título</label>
-  <input type="text" name="title" value="{{ proyecto.title }}" required>
+  <input type="text" name="name" value="{{ proyecto.name }}" required>
 
   <label>Descripción</label>
   <textarea name="description">{{ proyecto.description }}</textarea>
-
-  <label>Categoría</label>
-  <select name="category_id" required>
-    {% for c in categories %}
-      <option value="{{ c.id }}" {% if c.id == proyecto.category_id %}selected{% endif %}>{{ c.name }}</option>
-    {% endfor %}
-  </select>
 
   <label>Portada (reemplaza)</label>
   {% if proyecto.cover_image %}
     <div><img src="{{ url_for('static', filename='uploads/' ~ proyecto.cover_image) }}" style="max-width:200px;"></div>
   {% endif %}
-  <input type="file" name="cover" accept="image/*">
+  <input type="file" name="cover_image" accept="image/*">
 
   <button type="submit">Guardar</button>
 </form>
 
 <hr>
 <h3>Galería</h3>
-<form method="POST" action="{{ url_for('dashboard_proyecto_imagen_subir', project_id=proyecto.id) }}" enctype="multipart/form-data">
-  <input type="file" name="image" accept="image/*" required>
+<form method="POST" action="{{ url_for('subir_imagen', proyecto_id=proyecto.id) }}" enctype="multipart/form-data">
+  <input type="file" name="image" accept="image/*" multiple required>
+  <input type="text" name="title" placeholder="Título (opcional)" style="padding: 5px; margin: 5px;">
   <button type="submit">Subir a galería</button>
 </form>
 
@@ -36,16 +30,15 @@
   {% for img in proyecto.images %}
   <div class="admin-image-card">
     <img src="{{ url_for('static', filename='uploads/' ~ img.filename) }}">
-    <form method="POST" action="{{ url_for('dashboard_proyecto_imagen_eliminar', image_id=img.id) }}">
+    <form method="POST" action="{{ url_for('eliminar_imagen', image_id=img.id) }}">
       <button onclick="return confirm('Eliminar imagen?')">Eliminar</button>
     </form>
   </div>
   {% endfor %}
 </div>
 
-<form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', project_id=proyecto.id) }}" onsubmit="return confirm('Eliminar proyecto?');">
+<form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', proyecto_id=proyecto.id) }}" onsubmit="return confirm('Eliminar proyecto?');">
   <button>Eliminar Proyecto</button>
 </form>
 
 {% endblock %}
-
