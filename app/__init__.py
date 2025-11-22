@@ -16,14 +16,13 @@ def create_app():
                 template_folder=template_dir,
                 static_folder=static_dir)
     
-    # CONFIGURACIÓN PARA PRODUCCIÓN
+    # CONFIGURACIÓN
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave-secreta-desarrollo')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(static_dir, 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     
-    # Crear carpeta uploads si no existe
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     
