@@ -12,11 +12,11 @@
             {% if current_user.is_authenticated %}
             <div class="user-menu">
                 <a href="{{ url_for('dashboard_panel') }}" class="user-link">Hola, {{ current_user.username }}</a>
-                <a href="{{ url_for('auth.logout') }}" class="logout-btn">Cerrar Sesión</a>
+                <a href="{{ url_for('auth_logout') }}" class="logout-btn">Cerrar Sesión</a>
             </div>
             {% else %}
             <div class="user-menu">
-                <a href="{{ url_for('login') }}" class="login-btn">Admin Login</a>
+                <a href="{{ url_for('auth_login') }}" class="login-btn">Admin Login</a>
             </div>
             {% endif %}
         </div>
@@ -64,5 +64,6 @@
     </script>
 </body>
 </html>
+
 
 
