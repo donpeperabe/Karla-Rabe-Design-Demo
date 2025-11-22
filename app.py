@@ -43,7 +43,7 @@ class Image(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
 # Configuración Login
-login_manager.login_view = 'login'
+login_manager.login_view = 'auth_login'
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -82,28 +82,28 @@ def category_detail(category_id):
 
 # Rutas de Autenticación
 @app.route('/admin/login', methods=['GET', 'POST'])
-def login():
+def auth_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('dashboard_panel'))
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     return render_template('auth/login.html')
 
 @app.route('/admin/logout')
 @login_required
-def logout():
+def auth_logout():
     logout_user()
     return redirect(url_for('home'))
 
 # Dashboard
 @app.route('/dashboard')
 @login_required
-def dashboard():
+def dashboard_panel():
     categories = Category.query.all()
     return render_template('dashboard/panel.html', categories=categories)
 
@@ -115,7 +115,7 @@ def crear_categoria():
     
     if not name:
         flash('El nombre es obligatorio', 'error')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard_panel'))
 
     new_cat = Category(name=name, description=description)
     
@@ -129,7 +129,7 @@ def crear_categoria():
     db.session.add(new_cat)
     db.session.commit()
     flash('Categoría creada exitosamente!', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('dashboard_panel'))
 
 @app.route('/dashboard/subir_imagen/<int:category_id>', methods=['POST'])
 @login_required
@@ -139,7 +139,7 @@ def subir_imagen(category_id):
 
     if not files or all(file.filename == '' for file in files):
         flash('Selecciona al menos una imagen', 'error')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard_panel'))
 
     uploaded_count = 0
     for file in files:
@@ -157,7 +157,7 @@ def subir_imagen(category_id):
     else:
         flash('❌ No se pudieron subir las imágenes', 'error')
 
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('dashboard_panel'))
 
 @app.route('/dashboard/eliminar_imagen/<int:image_id>', methods=['POST'])
 @login_required
@@ -166,12 +166,57 @@ def eliminar_imagen(image_id):
     db.session.delete(img)
     db.session.commit()
     flash('Imagen eliminada exitosamente!', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('dashboard_panel'))
+
+@app.route('/dashboard/editar_categoria/<int:category_id>', methods=['GET', 'POST'])
+@login_required
+def editar_categoria(category_id):
+    category = Category.query.get_or_404(category_id)
+    
+    if request.method == 'POST':
+        category.name = request.form.get('name')
+        category.description = request.form.get('description')
+        
+        if 'cover_image' in request.files:
+            file = request.files['cover_image']
+            if file and file.filename != '' and allowed_file(file.filename):
+                if category.cover_image:
+                    old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], category.cover_image)
+                    if os.path.exists(old_image_path):
+                        os.remove(old_image_path)
+                
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                category.cover_image = filename
+        
+        db.session.commit()
+        flash('Categoría actualizada exitosamente!', 'success')
+        return redirect(url_for('dashboard_panel'))
+    
+    return render_template('dashboard/editar_categoria.html', category=category)
+
+@app.route('/dashboard/eliminar_categoria/<int:category_id>', methods=['POST'])
+@login_required
+def eliminar_categoria(category_id):
+    category = Category.query.get_or_404(category_id)
+    
+    if category.cover_image:
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], category.cover_image)
+        if os.path.exists(cover_path):
+            os.remove(cover_path)
+    
+    for image in category.images:
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    
+    db.session.delete(category)
+    db.session.commit()
+    
+    flash('Categoría eliminada exitosamente!', 'success')
+    return redirect(url_for('dashboard_panel'))
 
 if __name__ == '__main__':
-    # Crear carpeta uploads si no existe
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
-    
     app.run(host='0.0.0.0', port=5000, debug=True)
-
