@@ -1,7 +1,7 @@
-# wsgi.py
+# app.py - Archivo principal SIMPLE
 from app import create_app
 
 app = create_app()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run()
