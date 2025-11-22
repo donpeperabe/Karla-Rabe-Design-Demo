@@ -4,7 +4,7 @@
 <div class="dashboard-section">
     <h2>Editar Categoría</h2>
     
-    <form method="POST" action="{{ url_for('dashboard.editar_categoria', category_id=category.id) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('dashboard_editar_categoria', category_id=category.id) }}" enctype="multipart/form-data">
         <div class="form-group">
             <label for="name">Nombre de la categoría:</label>
             <input type="text" id="name" name="name" value="{{ category.name }}" required>
@@ -34,7 +34,7 @@
         
         <div class="form-actions">
             <button type="submit" class="btn-primary">Guardar Cambios</button>
-            <a href="{{ url_for('dashboard.panel') }}" class="btn-secondary">Cancelar</a>
+            <a href="{{ url_for('dashboard_panel') }}" class="btn-secondary">Cancelar</a>
         </div>
     </form>
     
@@ -50,11 +50,12 @@
         <p style="color: #666; margin-bottom: 15px;">
             ⚠️ Eliminar esta categoría también eliminará todas las imágenes asociadas. Esta acción no se puede deshacer.
         </p>
-        <form method="POST" action="{{ url_for('dashboard.eliminar_categoria', category_id=category.id) }}" 
+        <form method="POST" action="{{ url_for('dashboard_eliminar_categoria', category_id=category.id) }}" 
               onsubmit="return confirm('¿Estás segura de que quieres eliminar esta categoría? Se eliminarán {{ category.images|length }} imágenes.')">
             <button type="submit" class="btn-danger">Eliminar Categoría</button>
         </form>
     </div>
 </div>
+
 
 {% endblock %}
