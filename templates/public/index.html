@@ -39,7 +39,7 @@
             📊 Ir al Dashboard para agregar contenido
         </a>
         {% else %}
-        <a href="{{ url_for('auth.login') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
+        <a href="{{ url_for('auth_login') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
             🔐 Admin: Iniciar sesión para agregar contenido
         </a>
         {% endif %}
@@ -48,5 +48,6 @@
         {% endfor %}
     </div>
 </div>
+
 
 {% endblock %}
