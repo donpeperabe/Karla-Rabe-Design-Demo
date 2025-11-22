@@ -27,7 +27,7 @@
 
 <hr>
 <h3>Galería</h3>
-<form method="POST" action="{{ url_for('dashboard.proyecto_imagen_subir', project_id=proyecto.id) }}" enctype="multipart/form-data">
+<form method="POST" action="{{ url_for('dashboard_proyecto_imagen_subir', project_id=proyecto.id) }}" enctype="multipart/form-data">
   <input type="file" name="image" accept="image/*" required>
   <button type="submit">Subir a galería</button>
 </form>
@@ -36,15 +36,16 @@
   {% for img in proyecto.images %}
   <div class="admin-image-card">
     <img src="{{ url_for('static', filename='uploads/' ~ img.filename) }}">
-    <form method="POST" action="{{ url_for('dashboard.proyecto_imagen_eliminar', image_id=img.id) }}">
+    <form method="POST" action="{{ url_for('dashboard_proyecto_imagen_eliminar', image_id=img.id) }}">
       <button onclick="return confirm('Eliminar imagen?')">Eliminar</button>
     </form>
   </div>
   {% endfor %}
 </div>
 
-<form method="POST" action="{{ url_for('dashboard.proyecto_eliminar', project_id=proyecto.id) }}" onsubmit="return confirm('Eliminar proyecto?');">
+<form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', project_id=proyecto.id) }}" onsubmit="return confirm('Eliminar proyecto?');">
   <button>Eliminar Proyecto</button>
 </form>
 
 {% endblock %}
+
