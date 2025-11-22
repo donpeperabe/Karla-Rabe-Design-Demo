@@ -8,19 +8,18 @@
   {% for p in proyectos %}
   <div class="project-card">
     {% if p.cover_image %}
-      <img src="{{ url_for('static', filename='uploads/' ~ p.cover_image) }}" alt="{{ p.title }}">
+      <img src="{{ url_for('static', filename='uploads/' ~ p.cover_image) }}" alt="{{ p.name }}">
     {% else %}
       <div class="placeholder-thumb">Sin imagen</div>
     {% endif %}
-    <h3>{{ p.title }}</h3>
+    <h3>{{ p.name }}</h3>
     <p>{{ p.description[:120] if p.description else '' }}</p>
-    <a href="{{ url_for('dashboard_proyecto_editar', project_id=p.id) }}">Editar</a>
-    <form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', project_id=p.id) }}" style="display:inline-block;">
+    <a href="{{ url_for('dashboard_proyecto_editar', proyecto_id=p.id) }}">Editar</a>
+    <form method="POST" action="{{ url_for('dashboard_proyecto_eliminar', proyecto_id=p.id) }}" style="display:inline-block;">
       <button onclick="return confirm('Eliminar proyecto?');">Eliminar</button>
     </form>
-    <a href="{{ url_for('public.proyecto_detalle', project_id=p.id) }}" target="_blank">Ver público</a>
+    <a href="{{ url_for('proyecto_detalle', proyecto_id=p.id) }}" target="_blank">Ver público</a>
   </div>
   {% endfor %}
 </div>
 {% endblock %}
-
