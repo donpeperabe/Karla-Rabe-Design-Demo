@@ -228,7 +228,21 @@ init_db()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
+# Rutas de compatibilidad para mantener los templates existentes
+@app.route('/')
+def home_legacy():
+    return redirect(url_for('public.home'))
+
+@app.route('/dashboard')
+def dashboard_legacy():
+    return redirect(url_for('dashboard.panel'))
+
+@app.route('/admin/login')
+def login_legacy():
+    return redirect(url_for('auth.login'))
+
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(host='0.0.0.0', port=5000, debug=True)
+
