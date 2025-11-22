@@ -49,6 +49,22 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# INICIALIZACIÓN DE BASE DE DATOS
+def init_db():
+    with app.app_context():
+        db.create_all()
+        # Crear usuario admin si no existe
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin_user = User(username='admin', is_admin=True)
+            admin_user.set_password('admin123')
+            db.session.add(admin_user)
+            db.session.commit()
+            print("✅ Usuario admin creado: admin / admin123")
+
+# LLAMAR INICIALIZACIÓN
+init_db()
+
 # Utilidades
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
@@ -143,23 +159,18 @@ def subir_imagen(category_id):
 
     return redirect(url_for('dashboard'))
 
-# Inicialización
-def init_db():
-    with app.app_context():
-        db.create_all()
-        # Crear usuario admin si no existe
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin_user = User(username='admin', is_admin=True)
-            admin_user.set_password('admin123')
-            db.session.add(admin_user)
-            db.session.commit()
-            print("✅ Usuario admin creado: admin / admin123")
+@app.route('/dashboard/eliminar_imagen/<int:image_id>', methods=['POST'])
+@login_required
+def eliminar_imagen(image_id):
+    img = Image.query.get_or_404(image_id)
+    db.session.delete(img)
+    db.session.commit()
+    flash('Imagen eliminada exitosamente!', 'success')
+    return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     # Crear carpeta uploads si no existe
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     
-    init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
