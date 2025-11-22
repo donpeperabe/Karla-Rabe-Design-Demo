@@ -16,7 +16,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 
-# Modelos (mantener igual)
+# Modelos
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -49,6 +49,19 @@ login_manager.login_view = 'auth.login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# Crear Blueprint para rutas públicas
+public_bp = Blueprint('public', __name__)
+
+@public_bp.route('/')
+def home():
+    categories = Category.query.all()
+    return render_template('public/index.html', categories=categories)
+
+@public_bp.route('/category/<int:category_id>')
+def category_detail(category_id):
+    category = Category.query.get_or_404(category_id)
+    return render_template('public/category.html', category=category)
+
 # Crear Blueprint para autenticación
 auth_bp = Blueprint('auth', __name__, url_prefix='/admin')
 
@@ -60,7 +73,8 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('dashboard_panel'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('dashboard.panel'))
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     return render_template('auth/login.html')
@@ -69,7 +83,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('public.home'))
 
 # Crear Blueprint para dashboard
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -189,7 +203,8 @@ def eliminar_categoria(category_id):
     flash('Categoría eliminada exitosamente!', 'success')
     return redirect(url_for('dashboard.panel'))
 
-# Registrar Blueprints
+# Registrar todos los Blueprints
+app.register_blueprint(public_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(dashboard_bp)
 
@@ -212,17 +227,6 @@ init_db()
 # Utilidades
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
-
-# Rutas Públicas (mantener igual)
-@app.route('/')
-def home():
-    categories = Category.query.all()
-    return render_template('public/index.html', categories=categories)
-
-@app.route('/category/<int:category_id>')
-def category_detail(category_id):
-    category = Category.query.get_or_404(category_id)
-    return render_template('public/category.html', category=category)
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
