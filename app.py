@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, current_app
+from flask import Flask, render_template, request, redirect, url_for, flash, current_app, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -16,7 +16,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 
-# Modelos
+# Modelos (mantener igual)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -43,11 +43,36 @@ class Image(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
 # Configuración Login
-login_manager.login_view = 'auth_login'
+login_manager.login_view = 'auth.login'  # Cambiado para usar blueprint
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Crear Blueprint para autenticación
+auth_bp = Blueprint('auth', __name__, url_prefix='/admin')
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return redirect(url_for('dashboard_panel'))
+        else:
+            flash('Usuario o contraseña incorrectos', 'error')
+    return render_template('auth/login.html')
+
+@auth_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+# Registrar Blueprint
+app.register_blueprint(auth_bp)
 
 # INICIALIZACIÓN DE BASE DE DATOS
 def init_db():
@@ -69,7 +94,7 @@ init_db()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
-# Rutas Públicas
+# Rutas Públicas (mantener igual)
 @app.route('/')
 def home():
     categories = Category.query.all()
@@ -80,27 +105,7 @@ def category_detail(category_id):
     category = Category.query.get_or_404(category_id)
     return render_template('public/category.html', category=category)
 
-# Rutas de Autenticación
-@app.route('/admin/login', methods=['GET', 'POST'])
-def auth_login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for('dashboard_panel'))
-        else:
-            flash('Usuario o contraseña incorrectos', 'error')
-    return render_template('auth/login.html')
-
-@app.route('/admin/logout')
-@login_required
-def auth_logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-# Dashboard
+# Dashboard (mantener igual)
 @app.route('/dashboard')
 @login_required
 def dashboard_panel():
