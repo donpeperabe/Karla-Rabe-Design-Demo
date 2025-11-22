@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, current_app, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, flash, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -43,30 +43,46 @@ class Image(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
 
 # Configuración Login
-login_manager.login_view = 'auth.login'
+login_manager.login_view = 'auth_login'
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Crear Blueprint para rutas públicas
-public_bp = Blueprint('public', __name__)
+# INICIALIZACIÓN DE BASE DE DATOS
+def init_db():
+    with app.app_context():
+        db.create_all()
+        # Crear usuario admin si no existe
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin_user = User(username='admin', is_admin=True)
+            admin_user.set_password('admin123')
+            db.session.add(admin_user)
+            db.session.commit()
+            print("✅ Usuario admin creado: admin / admin123")
 
-@public_bp.route('/')
+# LLAMAR INICIALIZACIÓN
+init_db()
+
+# Utilidades
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+
+# Rutas Públicas
+@app.route('/')
 def home():
     categories = Category.query.all()
     return render_template('public/index.html', categories=categories)
 
-@public_bp.route('/category/<int:category_id>')
+@app.route('/category/<int:category_id>')
 def category_detail(category_id):
     category = Category.query.get_or_404(category_id)
     return render_template('public/category.html', category=category)
 
-# Crear Blueprint para autenticación
-auth_bp = Blueprint('auth', __name__, url_prefix='/admin')
-
-@auth_bp.route('/login', methods=['GET', 'POST'])
-def login():
+# Rutas de Autenticación
+@app.route('/admin/login', methods=['GET', 'POST'])
+def auth_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -74,27 +90,25 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('dashboard.panel'))
+            return redirect(next_page) if next_page else redirect(url_for('dashboard_panel'))
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     return render_template('auth/login.html')
 
-@auth_bp.route('/logout')
+@app.route('/admin/logout')
 @login_required
-def logout():
+def auth_logout():
     logout_user()
-    return redirect(url_for('public.home'))
+    return redirect(url_for('home'))
 
-# Crear Blueprint para dashboard
-dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
-
-@dashboard_bp.route('/')
+# Dashboard
+@app.route('/dashboard')
 @login_required
-def panel():
+def dashboard_panel():
     categories = Category.query.all()
     return render_template('dashboard/panel.html', categories=categories)
 
-@dashboard_bp.route('/crear_categoria', methods=['POST'])
+@app.route('/dashboard/crear_categoria', methods=['POST'])
 @login_required
 def crear_categoria():
     name = request.form.get('name')
@@ -102,7 +116,7 @@ def crear_categoria():
     
     if not name:
         flash('El nombre es obligatorio', 'error')
-        return redirect(url_for('dashboard.panel'))
+        return redirect(url_for('dashboard_panel'))
 
     new_cat = Category(name=name, description=description)
     
@@ -116,9 +130,9 @@ def crear_categoria():
     db.session.add(new_cat)
     db.session.commit()
     flash('Categoría creada exitosamente!', 'success')
-    return redirect(url_for('dashboard.panel'))
+    return redirect(url_for('dashboard_panel'))
 
-@dashboard_bp.route('/subir_imagen/<int:category_id>', methods=['POST'])
+@app.route('/dashboard/subir_imagen/<int:category_id>', methods=['POST'])
 @login_required
 def subir_imagen(category_id):
     files = request.files.getlist('image')
@@ -126,7 +140,7 @@ def subir_imagen(category_id):
 
     if not files or all(file.filename == '' for file in files):
         flash('Selecciona al menos una imagen', 'error')
-        return redirect(url_for('dashboard.panel'))
+        return redirect(url_for('dashboard_panel'))
 
     uploaded_count = 0
     for file in files:
@@ -144,18 +158,18 @@ def subir_imagen(category_id):
     else:
         flash('❌ No se pudieron subir las imágenes', 'error')
 
-    return redirect(url_for('dashboard.panel'))
+    return redirect(url_for('dashboard_panel'))
 
-@dashboard_bp.route('/eliminar_imagen/<int:image_id>', methods=['POST'])
+@app.route('/dashboard/eliminar_imagen/<int:image_id>', methods=['POST'])
 @login_required
 def eliminar_imagen(image_id):
     img = Image.query.get_or_404(image_id)
     db.session.delete(img)
     db.session.commit()
     flash('Imagen eliminada exitosamente!', 'success')
-    return redirect(url_for('dashboard.panel'))
+    return redirect(url_for('dashboard_panel'))
 
-@dashboard_bp.route('/editar_categoria/<int:category_id>', methods=['GET', 'POST'])
+@app.route('/dashboard/editar_categoria/<int:category_id>', methods=['GET', 'POST'])
 @login_required
 def editar_categoria(category_id):
     category = Category.query.get_or_404(category_id)
@@ -178,11 +192,11 @@ def editar_categoria(category_id):
         
         db.session.commit()
         flash('Categoría actualizada exitosamente!', 'success')
-        return redirect(url_for('dashboard.panel'))
+        return redirect(url_for('dashboard_panel'))
     
     return render_template('dashboard/editar_categoria.html', category=category)
 
-@dashboard_bp.route('/eliminar_categoria/<int:category_id>', methods=['POST'])
+@app.route('/dashboard/eliminar_categoria/<int:category_id>', methods=['POST'])
 @login_required
 def eliminar_categoria(category_id):
     category = Category.query.get_or_404(category_id)
@@ -201,48 +215,9 @@ def eliminar_categoria(category_id):
     db.session.commit()
     
     flash('Categoría eliminada exitosamente!', 'success')
-    return redirect(url_for('dashboard.panel'))
-
-# Registrar todos los Blueprints
-app.register_blueprint(public_bp)
-app.register_blueprint(auth_bp)
-app.register_blueprint(dashboard_bp)
-
-# INICIALIZACIÓN DE BASE DE DATOS
-def init_db():
-    with app.app_context():
-        db.create_all()
-        # Crear usuario admin si no existe
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin_user = User(username='admin', is_admin=True)
-            admin_user.set_password('admin123')
-            db.session.add(admin_user)
-            db.session.commit()
-            print("✅ Usuario admin creado: admin / admin123")
-
-# LLAMAR INICIALIZACIÓN
-init_db()
-
-# Utilidades
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
-
-# Rutas de compatibilidad para mantener los templates existentes
-@app.route('/')
-def home_legacy():
-    return redirect(url_for('public.home'))
-
-@app.route('/dashboard')
-def dashboard_legacy():
-    return redirect(url_for('dashboard.panel'))
-
-@app.route('/admin/login')
-def login_legacy():
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('dashboard_panel'))
 
 if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
     app.run(host='0.0.0.0', port=5000, debug=True)
-
