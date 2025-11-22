@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="category-header">
+    <h1>{{ category.name }}</h1>
+    {% if category.description %}
+    <p class="category-description">{{ category.description }}</p>
+    {% endif %}
+</div>
+
+{% if category.images %}
+<div class="galeria-imagenes">
+    {% for image in category.images %}
+    <div class="imagen-item">
+        <img src="{{ url_for('static', filename='uploads/' ~ image.filename) }}">
+        {% if image.title %}
+        <p class="imagen-titulo">{{ image.title }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sin-imagenes">
+    <p>Próximamente agregaremos imágenes a este catálogo</p>
+</div>
+{% endif %}
+
+<!-- BOTÓN DE CONTACTO -->
+<div class="contacto-section">
+    <h3>¿Te gustó nuestro trabajo?</h3>
+    <a href="https://wa.me/50200000000?text=Hola%20Karla,%20me%20interesa%20el%20catálogo%20{{ category.name }}" 
+       target="_blank" class="whatsapp-button">
+        📱 Contactar por WhatsApp
+    </a>
+    <br>
+    <a href="{{ url_for('public.home') }}" class="back-link">← Volver al catálogo</a>
+</div>
+
+{% endblock %}

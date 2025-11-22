@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Editar proyecto - Dashboard{% endblock %}
+{% block content %}
+<h2>Editar proyecto</h2>
+<form method="POST" enctype="multipart/form-data">
+  <label>Título</label>
+  <input type="text" name="title" value="{{ proyecto.title }}" required>
+
+  <label>Descripción</label>
+  <textarea name="description">{{ proyecto.description }}</textarea>
+
+  <label>Categoría</label>
+  <select name="category_id" required>
+    {% for c in categories %}
+      <option value="{{ c.id }}" {% if c.id == proyecto.category_id %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Portada (reemplaza)</label>
+  {% if proyecto.cover_image %}
+    <div><img src="{{ url_for('static', filename='uploads/' ~ proyecto.cover_image) }}" style="max-width:200px;"></div>
+  {% endif %}
+  <input type="file" name="cover" accept="image/*">
+
+  <button type="submit">Guardar</button>
+</form>
+
+<hr>
+<h3>Galería</h3>
+<form method="POST" action="{{ url_for('dashboard.proyecto_imagen_subir', project_id=proyecto.id) }}" enctype="multipart/form-data">
+  <input type="file" name="image" accept="image/*" required>
+  <button type="submit">Subir a galería</button>
+</form>
+
+<div class="admin-image-grid">
+  {% for img in proyecto.images %}
+  <div class="admin-image-card">
+    <img src="{{ url_for('static', filename='uploads/' ~ img.filename) }}">
+    <form method="POST" action="{{ url_for('dashboard.proyecto_imagen_eliminar', image_id=img.id) }}">
+      <button onclick="return confirm('Eliminar imagen?')">Eliminar</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+<form method="POST" action="{{ url_for('dashboard.proyecto_eliminar', project_id=proyecto.id) }}" onsubmit="return confirm('Eliminar proyecto?');">
+  <button>Eliminar Proyecto</button>
+</form>
+
+{% endblock %}

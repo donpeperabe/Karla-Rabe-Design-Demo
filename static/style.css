@@ -1,0 +1,854 @@
+/* ESTILOS GENERALES */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: white;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* HEADER Y LOGO */
+header {
+    position: relative;
+    background: white;
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.logo-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: contain;
+    border: 3px solid #EB51A2;
+    box-shadow: 0 4px 8px rgba(235, 81, 162, 0.3);
+    background: white;
+    padding: 8px;
+}
+
+nav {
+    margin-top: 15px;
+}
+
+nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+nav a[href*="home"] { color: #EB51A2; }
+nav a[href*="catalogos"] { color: #4DCFCF; }
+
+nav a:hover {
+    color: #4DCFCF;
+}
+
+/* HEADER SUPERIOR CON LOGOUT/LOGIN */
+.header-top {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    text-align: right;
+}
+
+.user-menu {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 14px;
+}
+
+.user-link {
+    color: #666;
+    margin-right: 10px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.user-link:hover {
+    color: #EB51A2;
+}
+
+.logout-btn, .login-btn {
+    background: #EB51A2;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background 0.3s ease;
+}
+
+.logout-btn:hover, .login-btn:hover {
+    background: #4DCFCF;
+}
+
+/* MAIN CONTENT */
+main {
+    min-height: 70vh;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* CATEGORÍAS EN INICIO - HOVER EFFECTS */
+.category-card {
+    border: 2px solid #4DCFCF;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    background: white;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+    margin: 10px 0;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(77, 207, 207, 0.3);
+    border-color: #EB51A2;
+}
+
+.category-card h3 {
+    color: #EB51A2;
+    margin: 10px 0;
+}
+
+.category-card p {
+    color: #666;
+}
+
+/* IMÁGENES EN CATEGORÍAS - HOVER EFFECTS */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.image-item {
+    border: 2px solid #4DCFCF;
+    border-radius: 10px;
+    padding: 15px;
+    background: white;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.image-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(235, 81, 162, 0.3);
+    border-color: #EB51A2;
+}
+
+.image-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.image-item:hover img {
+    transform: scale(1.02);
+}
+
+/* DASHBOARD STYLES */
+.dashboard-section {
+    border: 2px solid #4DCFCF;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+}
+
+.dashboard-section h3 {
+    color: #4DCFCF;
+    margin-top: 0;
+}
+
+.upload-form {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.upload-form h5 {
+    color: #4DCFCF;
+    margin-bottom: 10px;
+}
+
+.category-card-dashboard {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.category-card-dashboard h4 {
+    color: #EB51A2;
+    margin-top: 0;
+}
+
+.cover-preview {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.images-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.image-item-dashboard {
+    text-align: center;
+    flex: 0 0 auto;
+    transition: all 0.3s ease;
+}
+
+.image-item-dashboard:hover {
+    transform: scale(1.05);
+}
+
+.image-item-dashboard img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 2px solid #EB51A2;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.image-item-dashboard:hover img {
+    border-color: #4DCFCF;
+    box-shadow: 0 5px 15px rgba(235, 81, 162, 0.3);
+}
+
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: darkred;
+}
+
+/* FORM STYLES */
+input, textarea, select {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #4DCFCF;
+    outline: none;
+}
+
+button {
+    background: #EB51A2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-family: inherit;
+}
+
+button:hover {
+    background: #4DCFCF;
+}
+
+/* SOCIAL & FOOTER */
+.social-section {
+    background: #f8f8f8;
+    padding: 20px;
+    text-align: center;
+}
+
+.social-section h4 {
+    color: #EB51A2;
+    margin-bottom: 15px;
+}
+
+.social-links a {
+    margin: 0 10px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.social-links a:hover {
+    transform: scale(1.1);
+}
+
+.social-links img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    nav a {
+        display: block;
+        margin: 5px 0;
+    }
+    
+    .images-grid {
+        justify-content: center;
+    }
+    
+    .header-top {
+        position: static;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    .user-menu {
+        display: inline-block;
+    }
+}
+/* HERO SECTION ESTILIZADA */
+.hero-section {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #EB51A2, #4DCFCF);
+    color: white;
+    border-radius: 20px;
+    margin: 20px;
+    box-shadow: 0 10px 30px rgba(235, 81, 162, 0.3);
+}
+
+.hero-section h1 {
+    font-size: 3.5em;
+    margin-bottom: 20px;
+    font-weight: 300;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.hero-subtitle {
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    font-weight: 400;
+}
+
+.hero-text {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.hero-button {
+    background: white;
+    color: #EB51A2;
+    padding: 15px 35px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.hero-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    background: #f8f8f8;
+}
+
+/* CATÁLOGOS SECTION */
+.catalogos-section {
+    margin-top: 60px;
+    padding: 0 20px;
+}
+
+.catalogos-section h2 {
+    text-align: center;
+    color: #EB51A2;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    font-weight: 300;
+}
+
+.catalogos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* TARJETAS DE CATEGORÍAS CON HOVER BONITO */
+.categoria-card {
+    border: 2px solid #4DCFCF;
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    background: white;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 5px 20px rgba(77, 207, 207, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.categoria-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.categoria-card:hover::before {
+    left: 100%;
+}
+
+.categoria-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(235, 81, 162, 0.3);
+    border-color: #EB51A2;
+}
+
+.categoria-card h3 {
+    color: #EB51A2;
+    margin: 15px 0;
+    font-size: 1.4em;
+    font-weight: 400;
+}
+
+.categoria-card p {
+    color: #666;
+    line-height: 1.5;
+}
+
+.categoria-imagen {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.categoria-card:hover .categoria-imagen {
+    transform: scale(1.05);
+}
+
+.categoria-sin-imagen {
+    width: 100%;
+    height: 220px;
+    background: linear-gradient(135deg, #f8f8f8, #e8e8e8);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-style: italic;
+}
+
+/* GALERÍA DE IMÁGENES CON HOVER ELEGANTE */
+.category-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.category-header h1 {
+    color: #EB51A2;
+    font-size: 2.8em;
+    font-weight: 300;
+    margin-bottom: 15px;
+}
+
+.category-description {
+    color: #666;
+    font-size: 1.3em;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.galeria-imagenes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.imagen-item {
+    border: 2px solid #4DCFCF;
+    border-radius: 15px;
+    padding: 20px;
+    background: white;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 5px 20px rgba(77, 207, 207, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.imagen-item::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(235, 81, 162, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.imagen-item:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.imagen-item:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(235, 81, 162, 0.3);
+    border-color: #EB51A2;
+}
+
+.imagen-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: all 0.4s ease;
+    filter: brightness(0.95);
+}
+
+.imagen-item:hover img {
+    transform: scale(1.08);
+    filter: brightness(1.05);
+}
+
+.imagen-titulo {
+    margin: 15px 0 0 0;
+    color: #EB51A2;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: color 0.3s ease;
+}
+
+.imagen-item:hover .imagen-titulo {
+    color: #4DCFCF;
+}
+
+/* SECCIÓN DE CONTACTO ELEGANTE */
+.contacto-section {
+    text-align: center;
+    margin: 60px 0;
+    padding: 40px;
+    background: linear-gradient(135deg, #f9f9f9, #f0f0f0);
+    border-radius: 20px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+}
+
+.contacto-section h3 {
+    color: #EB51A2;
+    font-size: 1.8em;
+    margin-bottom: 25px;
+    font-weight: 300;
+}
+
+.whatsapp-button {
+    display: inline-block;
+    background: #25D366;
+    color: white;
+    padding: 18px 40px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(37, 211, 102, 0.5);
+    background: #1DA851;
+}
+
+.back-link {
+    color: #4DCFCF;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #EB51A2;
+}
+
+/* ESTADOS VACÍOS */
+.sin-categorias, .sin-imagenes {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 40px;
+}
+
+.sin-categorias p, .sin-imagenes p {
+    color: #666;
+    font-size: 1.2em;
+}
+
+.sin-categorias a {
+    color: #EB51A2;
+    text-decoration: none;
+}
+
+.sin-categorias a:hover {
+    color: #4DCFCF;
+}
+/* HOVER SUPER MINIMALISTA */
+nav a[href*="catalogos"] {
+    position: relative;
+    padding: 8px 0;
+    transition: all 0.3s ease;
+}
+
+nav a[href*="catalogos"]::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #4DCFCF, #EB51A2);
+    transition: width 0.3s ease;
+}
+
+nav a[href*="catalogos"]:hover {
+    color: #4DCFCF !important;
+    transform: translateY(-1px);
+}
+
+nav a[href*="catalogos"]:hover::after {
+    width: 100%;
+}
+
+/* HOVER PARA INICIO TAMBIÉN */
+nav a[href*="home"] {
+    position: relative;
+    padding: 8px 0;
+    transition: all 0.3s ease;
+}
+
+nav a[href*="home"]::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #EB51A2, #4DCFCF);
+    transition: width 0.3s ease;
+}
+
+nav a[href*="home"]:hover {
+    color: #EB51A2 !important;
+    transform: translateY(-1px);
+}
+
+nav a[href*="home"]:hover::after {
+    width: 100%;
+}
+/* ESTILOS PARA EDITAR CATEGORÍAS */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    max-width: 500px;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #4DCFCF;
+    outline: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4DCFCF, #EB51A2);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(77, 207, 207, 0.4);
+}
+
+.btn-secondary {
+    background: #f8f8f8;
+    color: #666;
+    padding: 12px 25px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #e8e8e8;
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: #ff4444;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background: #cc0000;
+    transform: translateY(-1px);
+}
+
+/* HOVER EFFECTS PARA BOTONES DE ACCIÓN */
+.btn-edit:hover {
+    background: #EB51A2 !important;
+    transform: translateY(-1px);
+}
+
+.btn-delete:hover {
+    background: #cc0000 !important;
+    transform: translateY(-1px);
+}
+
+.current-image {
+    margin: 10px 0;
+}
+
+.category-stats {
+    background: #f8f9fa;
+    border-left: 4px solid #4DCFCF;
+}
+
+.danger-zone {
+    background: #fff5f5;
+    border-left: 4px solid #ff4444;
+}
+/* HOVER EFFECTS PARA BOTONES DEL DASHBOARD */
+a[style*="background: #4DCFCF"]:hover {
+    background: #3bb8b8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(59, 184, 184, 0.3);
+}
+
+button[style*="background: #ff4444"]:hover {
+    background: #cc0000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(204, 0, 0, 0.3);
+}
+
+button[style*="background: #4DCFCF"]:hover {
+    background: #3bb8b8 !important;
+    transform: translateY(-1px);
+}
+
+button[style*="background: #EB51A2"]:hover {
+    background: #d43d8c !important;
+    transform: translateY(-1px);
+}
+
+button[style*="background: red"]:hover {
+    background: #cc0000 !important;
+    transform: translateY(-1px);
+}
+
+a[style*="color: #4DCFCF"]:hover {
+    color: #3bb8b8 !important;
+}
+/* HOVER EFFECTS PARA BOTONES DE EDICIÓN/ELIMINACIÓN */
+a[style*="background: #4DCFCF"]:hover {
+    background: #3bb8b8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(59, 184, 184, 0.3);
+}
+
+button[style*="background: #ff4444"]:hover {
+    background: #cc0000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(204, 0, 0, 0.3);
+}
+
+/* HOVER PARA BOTÓN SUBIR IMÁGENES */
+button[style*="background: #4DCFCF"]:hover {
+    background: #3bb8b8 !important;
+    transform: translateY(-1px);
+}
+
+/* HOVER PARA BOTÓN ELIMINAR IMÁGENES */
+button[style*="background: red"]:hover {
+    background: #cc0000 !important;
+    transform: translateY(-1px);
+}
