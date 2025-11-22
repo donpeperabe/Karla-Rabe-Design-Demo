@@ -35,7 +35,7 @@
             <p>Próximamente nuevos catálogos...</p>
              <p>
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('dashboard.panel') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
+        <a href="{{ url_for('dashboard_panel') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
             📊 Ir al Dashboard para agregar contenido
         </a>
         {% else %}
@@ -51,3 +51,4 @@
 
 
 {% endblock %}
+
