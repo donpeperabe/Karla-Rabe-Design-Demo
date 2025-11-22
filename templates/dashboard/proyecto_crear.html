@@ -1,24 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Crear proyecto - Dashboard{% endblock %}
+{% block title %}Crear Proyecto - Dashboard{% endblock %}
 {% block content %}
-<h2>Crear proyecto</h2>
+<h2>Crear Nuevo Proyecto</h2>
 <form method="POST" enctype="multipart/form-data">
-  <label>Título</label>
-  <input type="text" name="title" required>
-
-  <label>Descripción (opcional)</label>
+  <label>Nombre del Proyecto</label>
+  <input type="text" name="name" required>
+  
+  <label>Descripción</label>
   <textarea name="description"></textarea>
-
-  <label>Categoría</label>
-  <select name="category_id" required>
-    {% for c in categories %}
-      <option value="{{ c.id }}">{{ c.name }}</option>
-    {% endfor %}
-  </select>
-
-  <label>Portada (opcional)</label>
-  <input type="file" name="cover" accept="image/*">
-
-  <button type="submit">Crear</button>
+  
+  <label>Imagen de Portada</label>
+  <input type="file" name="cover_image" accept="image/*">
+  
+  <button type="submit">Crear Proyecto</button>
 </form>
 {% endblock %}
