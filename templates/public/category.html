@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="category-header">
+    <h1>{{ category.name }}</h1>
+    {% if category.description %}
+    <p class="category-description">{{ category.description }}</p>
+    {% endif %}
+</div>
+
+{% if category.images %}
+<div class="galeria-imagenes">
+    {% for image in category.images %}
+    <div class="imagen-item">
+        <img src="{{ url_for('static', filename='uploads/' ~ image.filename) }}">
+        {% if image.title %}
+        <p class="imagen-titulo">{{ image.title }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sin-imagenes">
+    <p>Próximamente agregaremos imágenes a este catálogo</p>
+</div>
+{% endif %}
+{% if category.pdffiles %}
+<div class="pdfs-section" style="margin: 40px 0;">
+    <h3 style="text-align: center; color: #EB51A2; margin-bottom: 30px; font-size: 1.8em;">📚 Catálogos Disponibles</h3>
+    
+    <div class="pdfs-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; justify-items: center;">
+        {% for pdf in category.pdffiles %}
+        <div class="pdf-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #4DCFCF; transition: all 0.3s ease; max-width: 300px; text-align: center; position: relative;">
+            
+            <!-- Icono PDF con efecto -->
+            <div class="pdf-icon" style="font-size: 3em; margin-bottom: 15px; color: #EB51A2; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                📄
+            </div>
+            
+            <!-- Título del PDF -->
+            <h4 style="color: #333; margin: 0 0 10px 0; font-size: 1.1em; font-weight: bold; line-height: 1.3;">
+                {{ pdf.title if pdf.title else pdf.filename|replace('.pdf', '')|replace('_', ' ') }}
+            </h4>
+            
+            <!-- Información del archivo -->
+            <div style="color: #666; font-size: 0.8em; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: center; gap: 15px;">
+                    <span>📁 PDF</span>
+                    <span>⚡ Listo para descargar</span>
+                </div>
+            </div>
+            
+            <!-- Botón de acción -->
+            <a href="{{ url_for('uploaded_pdf', filename=pdf.filename) }}" target="_blank" 
+               class="pdf-download-btn" 
+               style="display: inline-block; background: linear-gradient(135deg, #EB51A2, #4DCFCF); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(235, 81, 162, 0.3);">
+                👁️ Ver Catálogo
+            </a>
+            
+            <!-- Efecto hover -->
+            <style>
+                .pdf-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    border-color: #EB51A2;
+                }
+                
+                .pdf-download-btn:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 12px rgba(235, 81, 162, 0.4);
+                }
+            </style>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Estilos adicionales para responsive -->
+<style>
+    @media (max-width: 768px) {
+        .pdfs-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .pdf-card {
+            max-width: 100%;
+            margin: 0 10px;
+        }
+    }
+    
+    /* Animación de aparición */
+    .pdf-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endif %}
+<!-- BOTÓN DE CONTACTO -->
+<div class="contacto-section">
+    <h3>¿Te gustó nuestro trabajo?</h3>
+    <a href="https://wa.me/50200000000?text=Hola%20Karla,%20me%20interesa%20el%20catálogo%20{{ category.name }}" 
+       target="_blank" class="whatsapp-button">
+        📱 Contactar por WhatsApp
+    </a>
+    <br>
+    <a href="{{ url_for('home') }}" class="back-link">← Volver al catálogo</a>
+</div>
+
+{% endblock %}

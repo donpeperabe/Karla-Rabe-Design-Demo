@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- HERO SECTION -->
+<div class="hero-section">
+    <!--a href="#catalogos" class="hero-button">Ver Catálogos</a-->
+    <h1>Karla Rabe Design</h1>
+    <p class="hero-subtitle">🎁 Kits escolares, tarjetas, stickers, portarretratos, separadores y más.</p>
+    <p class="hero-text">Diseños creativos y personalizados</p>
+    <p class="hero-text">❤️ Detalles que emocionan y perduran</p>
+    <p class="hero-text">Creados con cariño para transformar tus ideas en recuerdos inolvidables.</p>
+</div>
+
+<!-- CATÁLOGOS SECTION -->
+<div id="catalogos" class="catalogos-section">
+    <h2>Nuestros Catálogos</h2>
+    
+    <div class="catalogos-grid">
+        {% for category in categories %}
+        <a href="{{ url_for('category_detail', category_id=category.id) }}" class="categoria-card">
+            {% if category.cover_image %}
+            <img src="{{ url_for('static', filename='uploads/' ~ category.cover_image) }}" class="categoria-imagen">
+            {% else %}
+            <div class="categoria-sin-imagen">
+                <span>Sin imagen</span>
+            </div>
+            {% endif %}
+            <h3>{{ category.name }}</h3>
+            {% if category.description %}
+            <p>{{ category.description }}</p>
+            {% endif %}
+        </a>
+        {% else %}
+        <div class="sin-categorias">
+            <p>Próximamente nuevos catálogos...</p>
+             <p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard_panel') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
+            📊 Ir al Dashboard para agregar contenido
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth_login') }}" style="color: #EB51A2; text-decoration: none; font-weight: bold;">
+            🔐 Admin: Iniciar sesión para agregar contenido
+        </a>
+        {% endif %}
+    </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}

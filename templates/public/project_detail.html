@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ proyecto.title }} - Karla Rabe{% endblock %}
+{% block content %}
+<section class="project-detail">
+  <h1>{{ proyecto.title }}</h1>
+  {% if proyecto.cover_image %}
+    <img src="{{ url_for('static', filename='uploads/' ~ proyecto.cover_image) }}" class="cover">
+  {% endif %}
+  {% if proyecto.description %}
+    <div class="desc">{{ proyecto.description }}</div>
+  {% endif %}
+
+  <h3>Galería</h3>
+  <div class="image-grid">
+    {% for img in proyecto.images %}
+      <div class="image-card"><img src="{{ url_for('static', filename='uploads/' ~ img.filename) }}"></div>
+    {% endfor %}
+  </div>
+
+  <div class="contact-row">
+    <a href="https://wa.me/502TU_NUMERO?text=Hola%20Karla%20te%20contacto%20por%20el%20proyecto%20{{ proyecto.title }}" target="_blank">Contactar por WhatsApp</a>
+    <a href="{{ url_for('home') }}">Volver al catálogo</a>
+  </div>
+</section>
+{% endblock %}
