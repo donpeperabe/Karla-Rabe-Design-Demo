@@ -44,6 +44,16 @@ class Image(db.Model):
     title = db.Column(db.String(200), nullable=True)
     proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
 
+class PDFFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    title = db.Column(db.String(200), nullable=True)
+    proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
+
+    def __repr__(self):
+        return f"<PDF {self.filename}>"
+
+
 # Configuración Login
 login_manager.login_view = 'auth_login'
 
@@ -238,6 +248,67 @@ def eliminar_imagen(image_id):
     
     return redirect(url_for('dashboard_panel'))
 
+@app.route('/dashboard/subir_pdf/<int:proyecto_id>', methods=['POST'])
+@login_required
+def subir_pdf(proyecto_id):
+    try:
+        file = request.files.get('pdf')
+        title = request.form.get('title')
+
+        if not file or file.filename == '':
+            flash('Selecciona un archivo PDF', 'error')
+            return redirect(url_for('dashboard_panel'))
+
+        if allowed_file(file.filename) and file.filename.lower().endswith('.pdf'):
+            filename = secure_filename(file.filename)
+
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(upload_path)
+
+            pdf = PDFFile(filename=filename, title=title, proyecto_id=proyecto_id)
+            db.session.add(pdf)
+            db.session.commit()
+
+            flash('PDF subido exitosamente!', 'success')
+        else:
+            flash('Archivo no permitido. Debe ser PDF.', 'error')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al subir PDF: {str(e)}', 'error')
+
+    return redirect(url_for('dashboard_panel'))
+
+@app.route('/dashboard/eliminar_pdf/<int:pdf_id>', methods=['POST'])
+@login_required
+def eliminar_pdf(pdf_id):
+    try:
+        pdf = PDFFile.query.get_or_404(pdf_id)
+
+        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], pdf.filename)
+        if os.path.exists(pdf_path):
+            os.remove(pdf_path)
+
+        db.session.delete(pdf)
+        db.session.commit()
+        flash('PDF eliminado exitosamente!', 'success')
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar PDF: {str(e)}', 'error')
+
+    return redirect(url_for('dashboard_panel'))
+
+@app.route('/ver_pdf/<path:filename>')
+def ver_pdf(filename):
+    return send_from_directory(
+        os.path.join(app.static_folder, 'uploads'),
+        filename,
+        mimetype="application/pdf",
+        as_attachment=False
+    )
+
 # Editar Proyecto
 @app.route('/dashboard/editar_proyecto/<int:proyecto_id>', methods=['GET', 'POST'])
 @login_required
@@ -315,4 +386,5 @@ if __name__ == '__main__':
     # Crear directorios necesarios
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
