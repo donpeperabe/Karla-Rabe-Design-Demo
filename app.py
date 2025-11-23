@@ -1,5 +1,8 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,13 +13,17 @@ from config import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Asegurar que la carpeta de uploads existe
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth_login'
 login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
+
+# -------------------- CLOUDINARY CONFIG --------------------
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', 'devlfxd7k'), 
+    api_key=os.environ.get('CLOUDINARY_API_KEY', '884811176721628'),    
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', 'xtYxEL5UqwePOM1370L3gImET0O6OV6') 
+)
 
 # -------------------- MODELOS --------------------
 
@@ -37,12 +44,11 @@ class Proyecto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(255), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
-    imagen = db.Column(db.String(255), nullable=True)
+    imagen = db.Column(db.String(255), nullable=True)  # Guarda la URL de Cloudinary
 
     images = db.relationship('Image', backref='proyecto', lazy=True, cascade="all,delete")
     pdffiles = db.relationship('PDFFile', backref='proyecto', lazy=True, cascade="all,delete")
 
-    # Propiedades para compatibilidad
     @property
     def name(self):
         return self.nombre
@@ -54,20 +60,32 @@ class Proyecto(db.Model):
     @property
     def cover_image(self):
         return self.imagen
+    
+    @property
+    def cover_image_url(self):
+        return self.imagen  # Ya es la URL completa de Cloudinary
 
 
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(255), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)  # Guarda la URL de Cloudinary
     title = db.Column(db.String(200))
     proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
+    
+    @property
+    def image_url(self):
+        return self.filename  # Ya es la URL completa de Cloudinary
 
 
 class PDFFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(255), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)  # Guarda la URL de Cloudinary
     title = db.Column(db.String(200))
     proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
+    
+    @property
+    def pdf_url(self):
+        return self.filename  # Ya es la URL completa de Cloudinary
 
 
 @login_manager.user_loader
@@ -81,7 +99,6 @@ def init_db():
             db.create_all()
             print("✅ Tablas creadas exitosamente")
             
-            # Crear usuario admin si no existe
             admin_user = User.query.filter_by(username='admin').first()
             if not admin_user:
                 admin_user = User(username='admin', is_admin=True)
@@ -96,7 +113,6 @@ def init_db():
             print(f"❌ Error al inicializar la base de datos: {e}")
 
 
-# Inicializar la base de datos
 init_db()
 
 # -------------------- UTIL --------------------
@@ -104,15 +120,50 @@ init_db()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
+def upload_to_cloudinary(file, folder="karla_rabe"):
+    """Sube archivo a Cloudinary y retorna URL"""
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            folder=folder,
+            resource_type="auto"  # Detecta automáticamente si es imagen o PDF
+        )
+        return result['secure_url']  # URL segura
+    except Exception as e:
+        print(f"Error subiendo a Cloudinary: {e}")
+        return None
+
+def delete_from_cloudinary(url):
+    """Elimina archivo de Cloudinary usando la URL"""
+    try:
+        # Extraer public_id de la URL de Cloudinary
+        public_id = url.split('/')[-1].split('.')[0]
+        folder = "karla_rabe"
+        full_public_id = f"{folder}/{public_id}"
+        
+        result = cloudinary.uploader.destroy(full_public_id)
+        return result.get('result') == 'ok'
+    except Exception as e:
+        print(f"Error eliminando de Cloudinary: {e}")
+        return False
+
 # -------------------- RUTAS PARA ARCHIVOS --------------------
 
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # Redirigir a la URL almacenada (ya está en Cloudinary)
+    image = Image.query.filter_by(filename=filename).first()
+    if image:
+        return redirect(image.filename)
+    return "Archivo no encontrado", 404
 
 @app.route('/uploaded_pdf/<path:filename>')
 def uploaded_pdf(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # Redirigir a la URL almacenada (ya está en Cloudinary)
+    pdf = PDFFile.query.filter_by(filename=filename).first()
+    if pdf:
+        return redirect(pdf.filename)
+    return "PDF no encontrado", 404
 
 # -------------------- PÚBLICO --------------------
 
@@ -184,9 +235,13 @@ def dashboard_proyecto_crear():
 
         file = request.files.get('cover_image')
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            proyecto.imagen = filename
+            # Subir a Cloudinary
+            image_url = upload_to_cloudinary(file)
+            if image_url:
+                proyecto.imagen = image_url
+                flash('Imagen de portada subida exitosamente a la nube', 'success')
+            else:
+                flash('Error subiendo la imagen', 'error')
 
         db.session.add(proyecto)
         db.session.commit()
@@ -208,13 +263,17 @@ def dashboard_proyecto_editar(proyecto_id):
 
         file = request.files.get('cover_image')
         if file and allowed_file(file.filename):
+            # Eliminar imagen anterior de Cloudinary si existe
             if proyecto.imagen:
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.imagen)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            proyecto.imagen = filename
+                delete_from_cloudinary(proyecto.imagen)
+            
+            # Subir nueva imagen a Cloudinary
+            image_url = upload_to_cloudinary(file)
+            if image_url:
+                proyecto.imagen = image_url
+                flash('Imagen de portada actualizada exitosamente', 'success')
+            else:
+                flash('Error actualizando la imagen', 'error')
 
         db.session.commit()
         flash('Proyecto actualizado exitosamente', 'success')
@@ -235,24 +294,19 @@ def editar_categoria(id):
 def eliminar_categoria(id):
     proyecto = Proyecto.query.get_or_404(id)
     
+    # Eliminar archivos de Cloudinary
     if proyecto.imagen:
-        path = os.path.join(app.config['UPLOAD_FOLDER'], proyecto.imagen)
-        if os.path.exists(path):
-            os.remove(path)
+        delete_from_cloudinary(proyecto.imagen)
 
     for img in proyecto.images:
-        p = os.path.join(app.config['UPLOAD_FOLDER'], img.filename)
-        if os.path.exists(p):
-            os.remove(p)
+        delete_from_cloudinary(img.filename)
 
     for pdf in proyecto.pdffiles:
-        p = os.path.join(app.config['UPLOAD_FOLDER'], pdf.filename)
-        if os.path.exists(p):
-            os.remove(p)
+        delete_from_cloudinary(pdf.filename)
 
     db.session.delete(proyecto)
     db.session.commit()
-    flash('Proyecto eliminado exitosamente', 'success')
+    flash('Proyecto y todos sus archivos eliminados exitosamente', 'success')
     return redirect(url_for('dashboard_panel'))
 
 # -------- SUBIR IMAGEN --------
@@ -265,12 +319,15 @@ def subir_imagen(proyecto_id):
 
     for file in files:
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            db.session.add(Image(filename=filename, title=title, proyecto_id=proyecto_id))
+            # Subir a Cloudinary
+            image_url = upload_to_cloudinary(file)
+            if image_url:
+                db.session.add(Image(filename=image_url, title=title, proyecto_id=proyecto_id))
+                flash('Imágenes subidas exitosamente a la nube', 'success')
+            else:
+                flash('Error subiendo algunas imágenes', 'error')
 
     db.session.commit()
-    flash('Imágenes subidas exitosamente', 'success')
     return redirect(url_for('dashboard_proyecto_editar', proyecto_id=proyecto_id))
 
 # -------- ELIMINAR IMAGEN --------
@@ -280,9 +337,10 @@ def subir_imagen(proyecto_id):
 def eliminar_imagen(image_id):
     img = Image.query.get_or_404(image_id)
     proyecto_id = img.proyecto_id
-    path = os.path.join(app.config['UPLOAD_FOLDER'], img.filename)
-    if os.path.exists(path):
-        os.remove(path)
+    
+    # Eliminar de Cloudinary
+    delete_from_cloudinary(img.filename)
+    
     db.session.delete(img)
     db.session.commit()
     flash('Imagen eliminada exitosamente', 'success')
@@ -300,12 +358,15 @@ def subir_pdf(proyecto_id):
         flash('Debes subir un PDF válido', 'error')
         return redirect(url_for('dashboard_panel'))
 
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-    db.session.add(PDFFile(filename=filename, title=title, proyecto_id=proyecto_id))
-    db.session.commit()
-    flash('PDF subido exitosamente', 'success')
+    # Subir a Cloudinary
+    pdf_url = upload_to_cloudinary(file)
+    if pdf_url:
+        db.session.add(PDFFile(filename=pdf_url, title=title, proyecto_id=proyecto_id))
+        db.session.commit()
+        flash('PDF subido exitosamente a la nube', 'success')
+    else:
+        flash('Error subiendo el PDF', 'error')
+        
     return redirect(url_for('dashboard_panel'))
 
 # -------- ELIMINAR PDF --------
@@ -314,9 +375,10 @@ def subir_pdf(proyecto_id):
 @login_required
 def eliminar_pdf(pdf_id):
     pdf = PDFFile.query.get_or_404(pdf_id)
-    path = os.path.join(app.config['UPLOAD_FOLDER'], pdf.filename)
-    if os.path.exists(path):
-        os.remove(path)
+    
+    # Eliminar de Cloudinary
+    delete_from_cloudinary(pdf.filename)
+    
     db.session.delete(pdf)
     db.session.commit()
     flash('PDF eliminado exitosamente', 'success')
