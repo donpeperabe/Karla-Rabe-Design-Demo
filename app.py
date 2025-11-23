@@ -9,12 +9,8 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-# Usar PostgreSQL en Render, SQLite localmente
-database_url = os.environ.get('DATABASE_URL')
-if database_url and database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///app.db'
-
+# Usar SQLite con ruta absoluta en Render
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/app.db'  # /tmp es persistente en Render
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
@@ -22,7 +18,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 
-# Modelos
+# Modelos (mantener igual)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -55,19 +51,29 @@ login_manager.login_view = 'auth_login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# INICIALIZACIÓN DE BASE DE DATOS
+# INICIALIZACIÓN DE BASE DE DATOS MEJORADA
 def init_db():
     with app.app_context():
         try:
+            # Verificar si la base de datos existe
+            db_path = '/tmp/app.db'
+            db_exists = os.path.exists(db_path)
+            
             db.create_all()
-            admin = User.query.filter_by(username='admin').first()
-            if not admin:
-                admin_user = User(username='admin', is_admin=True)
-                admin_user.set_password('admin123')
-                db.session.add(admin_user)
-                db.session.commit()
-                print("✅ Usuario admin creado: admin / admin123")
-            print("✅ Base de datos inicializada correctamente")
+            
+            if not db_exists:
+                # Solo crear admin si la DB es nueva
+                admin = User.query.filter_by(username='admin').first()
+                if not admin:
+                    admin_user = User(username='admin', is_admin=True)
+                    admin_user.set_password('admin123')
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    print("✅ Usuario admin creado: admin / admin123")
+                print("✅ Base de datos inicializada correctamente")
+            else:
+                print("✅ Base de datos existente cargada")
+                
         except Exception as e:
             print(f"❌ Error inicializando base de datos: {e}")
 
@@ -142,17 +148,19 @@ def crear_proyecto():
         
         print(f"📝 Intentando crear proyecto: {name}")
         
-        if not name:
+        if not name or not name.strip():
             flash('El nombre es obligatorio', 'error')
             return redirect(url_for('dashboard_panel'))
 
-        nuevo_proyecto = Proyecto(name=name, description=description)
+        nuevo_proyecto = Proyecto(name=name.strip(), description=description)
         
         # Procesar imagen de portada
         if 'cover_image' in request.files:
             file = request.files['cover_image']
             if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
+                # Crear directorio si no existe
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 nuevo_proyecto.cover_image = filename
@@ -189,6 +197,8 @@ def subir_imagen(proyecto_id):
         for file in files:
             if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
+                # Crear directorio si no existe
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(upload_path)
                 img = Image(filename=filename, proyecto_id=proyecto_id, title=title)
@@ -243,6 +253,7 @@ def editar_proyecto(proyecto_id):
                             os.remove(old_image_path)
                     
                     filename = secure_filename(file.filename)
+                    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     proyecto.cover_image = filename
             
@@ -282,6 +293,6 @@ def eliminar_proyecto(proyecto_id):
     return redirect(url_for('dashboard_panel'))
 
 if __name__ == '__main__':
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+    # Crear directorios necesarios
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
