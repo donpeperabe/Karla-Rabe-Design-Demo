@@ -24,7 +24,18 @@
     <p>Próximamente agregaremos imágenes a este catálogo</p>
 </div>
 {% endif %}
-
+{% if category.pdffiles %}
+<h3>Catálogos PDF</h3>
+<div class="pdf-public-list">
+    {% for pdf in category.pdffiles %}
+    <p>
+        <a href="{{ url_for('ver_pdf', filename=pdf.filename) }}" target="_blank" class="pdf-link">
+            📄 {{ pdf.title if pdf.title else pdf.filename }}
+        </a>
+    </p>
+    {% endfor %}
+</div>
+{% endif %}
 <!-- BOTÓN DE CONTACTO -->
 <div class="contacto-section">
     <h3>¿Te gustó nuestro trabajo?</h3>
@@ -37,3 +48,4 @@
 </div>
 
 {% endblock %}
+
