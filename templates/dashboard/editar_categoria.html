@@ -2,26 +2,26 @@
 {% block content %}
 
 <div class="dashboard-section">
-    <h2>Editar Categoría</h2>
+    <h2>Editar Proyecto</h2>
     
-    <form method="POST" action="{{ url_for('editar_categoria', category_id=category.id) }}" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="name">Nombre de la categoría:</label>
-            <input type="text" id="name" name="name" value="{{ category.name }}" required>
+            <label for="name">Nombre del proyecto:</label>
+            <input type="text" id="name" name="name" value="{{ proyecto.name }}" required>
         </div>
         
         <div class="form-group">
             <label for="description">Descripción:</label>
-            <textarea id="description" name="description" rows="4">{{ category.description or '' }}</textarea>
+            <textarea id="description" name="description" rows="4">{{ proyecto.description or '' }}</textarea>
         </div>
         
         <div class="form-group">
             <label for="cover_image">Imagen de portada actual:</label>
-            {% if category.cover_image %}
+            {% if proyecto.cover_image %}
             <div class="current-image">
-                <img src="{{ url_for('static', filename='uploads/' ~ category.cover_image) }}" 
+                <img src="{{ url_for('static', filename='uploads/' ~ proyecto.cover_image) }}" 
                      style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; display: block; margin: 10px 0;">
-                <small>{{ category.cover_image }}</small>
+                <small>{{ proyecto.cover_image }}</small>
             </div>
             {% else %}
             <p style="color: #666;">No hay imagen de portada</p>
@@ -38,25 +38,60 @@
         </div>
     </form>
     
-    <!-- Estadísticas de la categoría -->
+    <!-- Estadísticas del proyecto -->
     <div class="category-stats" style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 10px;">
-        <h4>Estadísticas de la Categoría</h4>
-        <p><strong>Total de imágenes:</strong> {{ category.images|length }}</p>
-        <p><strong>Creada:</strong> {{ category.id }} (ID de referencia)</p>
+        <h4>Estadísticas del Proyecto</h4>
+        <p><strong>Total de imágenes:</strong> {{ proyecto.images|length }}</p>
+        <p><strong>ID:</strong> {{ proyecto.id }}</p>
     </div>
     
-    <!-- Eliminar categoría (con confirmación) -->
+    <!-- Galería de imágenes -->
+    {% if proyecto.images %}
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF;">Galería de Imágenes</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            {% for image in proyecto.images %}
+            <div style="text-align: center;">
+                <img src="{{ url_for('static', filename='uploads/' ~ image.filename) }}" 
+                     style="width: 100px; height: 100px; object-fit: cover; border: 2px solid #EB51A2; border-radius: 5px;">
+                {% if image.title %}
+                <p style="margin: 5px 0; font-size: 12px;">{{ image.title }}</p>
+                {% endif %}
+                <form method="POST" action="{{ url_for('eliminar_imagen', image_id=image.id) }}" 
+                      onsubmit="return confirm('¿Eliminar esta imagen?')" style="margin-top: 5px;">
+                    <button type="submit" style="background: red; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        Eliminar
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Subir más imágenes -->
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF;">Agregar más imágenes</h3>
+        <form method="POST" action="{{ url_for('subir_imagen', proyecto_id=proyecto.id) }}" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Título de la imagen (opcional)" 
+                   style="padding: 5px; margin: 5px; border: 1px solid #ddd; border-radius: 3px;">
+            <input type="file" name="image" accept="image/*" multiple required style="margin: 5px;">
+            <button type="submit" style="background: #4DCFCF; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">
+                Subir Imágenes
+            </button>
+        </form>
+    </div>
+    
+    <!-- Eliminar proyecto (con confirmación) -->
     <div class="danger-zone" style="margin-top: 30px; padding: 20px; background: #ffebee; border: 2px solid #f44336; border-radius: 10px;">
         <p style="color: #666; margin-bottom: 15px;">
-            ⚠️ Eliminar esta categoría también eliminará todas las imágenes asociadas. Esta acción no se puede deshacer.
+            ⚠️ Eliminar este proyecto también eliminará todas las imágenes asociadas. Esta acción no se puede deshacer.
         </p>
-        <form method="POST" action="{{ url_for('dashboard_eliminar_categoria', category_id=category.id) }}" 
-              onsubmit="return confirm('¿Estás segura de que quieres eliminar esta categoría? Se eliminarán {{ category.images|length }} imágenes.')">
-            <button type="submit" class="btn-danger">Eliminar Categoría</button>
+        <form method="POST" action="{{ url_for('eliminar_proyecto', proyecto_id=proyecto.id) }}" 
+              onsubmit="return confirm('¿Estás segura de que quieres eliminar este proyecto? Se eliminarán {{ proyecto.images|length }} imágenes.')">
+            <button type="submit" class="btn-danger">Eliminar Proyecto</button>
         </form>
     </div>
 </div>
 
-
 {% endblock %}
-
