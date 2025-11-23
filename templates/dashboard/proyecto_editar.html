@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Barra flotante de acciones -->
+<div style="position: fixed; bottom: 20px; right: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; border: 2px solid #4DCFCF;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button type="submit" form="editForm" 
+                style="background: #EB51A2; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            💾 Guardar Cambios
+        </button>
+        <a href="{{ url_for('dashboard_panel') }}" 
+           style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+            ❌ Cancelar
+        </a>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <h2>Editar Proyecto</h2>
+    
+    <form method="POST" enctype="multipart/form-data" id="editForm">
+        <div class="form-group">
+            <label for="name">Nombre del proyecto:</label>
+            <input type="text" id="name" name="name" value="{{ proyecto.name }}" required
+                   style="padding: 10px; width: 100%; max-width: 400px; border: 2px solid #4DCFCF; border-radius: 5px;">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Descripción:</label>
+            <textarea id="description" name="description" rows="4" 
+                      style="padding: 10px; width: 100%; max-width: 400px; border: 2px solid #4DCFCF; border-radius: 5px;">{{ proyecto.description or '' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="cover_image">Imagen de portada actual:</label>
+            {% if proyecto.cover_image %}
+            <div class="current-image">
+                <img src="{{ proyecto.cover_image_url }}" 
+                     style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; display: block; margin: 10px 0; border: 3px solid #EB51A2;">
+                <small style="color: #666;">{{ proyecto.cover_image.split('/')[-1] if '/' in proyecto.cover_image else proyecto.cover_image }}</small>
+            </div>
+            {% else %}
+            <p style="color: #666;">No hay imagen de portada</p>
+            {% endif %}
+            
+            <label for="new_cover_image" style="margin-top: 15px; display: block; font-weight: bold;">Cambiar imagen de portada:</label>
+            <input type="file" id="new_cover_image" name="cover_image" accept="image/*"
+                   style="margin: 10px 0; padding: 8px; border: 2px dashed #4DCFCF; border-radius: 5px; width: 100%; max-width: 400px;">
+            <small style="color: #666;">Dejar vacío para mantener la imagen actual</small>
+        </div>
+    </form>
+    
+    <!-- Estadísticas del proyecto -->
+    <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 10px; border-left: 4px solid #4DCFCF;">
+        <h4 style="color: #4DCFCF; margin-bottom: 15px;">📊 Estadísticas del Proyecto</h4>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px; color: #EB51A2; font-weight: bold;">{{ proyecto.images|length }}</div>
+                <div style="color: #666;">Imágenes</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; color: #EB51A2; font-weight: bold;">{{ proyecto.pdffiles|length }}</div>
+                <div style="color: #666;">PDFs</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 24px; color: #EB51A2; font-weight: bold;">{{ proyecto.id }}</div>
+                <div style="color: #666;">ID Proyecto</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Galería de imágenes -->
+    {% if proyecto.images %}
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF; margin-bottom: 20px;">🖼️ Galería de Imágenes</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            {% for image in proyecto.images %}
+            <div style="text-align: center; padding: 10px; border: 2px solid #EB51A2; border-radius: 8px; background: white;">
+                <img src="{{ image.image_url }}" 
+                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                {% if image.title %}
+                <p style="margin: 5px 0; font-size: 12px; color: #333; font-weight: bold;">{{ image.title }}</p>
+                {% endif %}
+                <form method="POST" action="{{ url_for('eliminar_imagen', image_id=image.id) }}" 
+                      onsubmit="return confirm('¿Eliminar esta imagen?')" style="margin-top: 5px;">
+                    <button type="submit" style="background: red; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        🗑️ Eliminar
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Subir más imágenes -->
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF; margin-bottom: 15px;">📸 Agregar más imágenes</h3>
+        <form method="POST" action="{{ url_for('subir_imagen', proyecto_id=proyecto.id) }}" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Título de la imagen (opcional)" 
+                   style="padding: 8px; margin: 5px; border: 2px solid #4DCFCF; border-radius: 5px; width: 250px;">
+            <input type="file" name="image" accept="image/*" multiple required 
+                   style="margin: 5px; padding: 8px; border: 2px dashed #4DCFCF; border-radius: 5px;">
+            <button type="submit" style="background: #4DCFCF; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                🚀 Subir Imágenes
+            </button>
+        </form>
+    </div>
+
+    <!-- Subir PDF -->
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF; margin-bottom: 15px;">📄 Agregar PDF</h3>
+        <form method="POST" action="{{ url_for('subir_pdf', proyecto_id=proyecto.id) }}" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Título del PDF (opcional)" 
+                   style="padding: 8px; margin: 5px; border: 2px solid #4DCFCF; border-radius: 5px; width: 250px;">
+            <input type="file" name="pdf" accept="application/pdf" required 
+                   style="margin: 5px; padding: 8px; border: 2px dashed #4DCFCF; border-radius: 5px;">
+            <button type="submit" style="background: #4DCFCF; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                📤 Subir PDF
+            </button>
+        </form>
+    </div>
+
+    <!-- Lista de PDFs -->
+    {% if proyecto.pdffiles %}
+    <div style="margin-top: 30px; border: 2px solid #4DCFCF; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4DCFCF; margin-bottom: 20px;">📋 PDFs del Proyecto</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            {% for pdf in proyecto.pdffiles %}
+            <div style="text-align: center; padding: 15px; border: 2px solid #EB51A2; border-radius: 8px; background: white; min-width: 150px;">
+                <div style="font-size: 24px; margin-bottom: 5px;">📄</div>
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">{{ pdf.title if pdf.title else pdf.filename.split('/')[-1] if '/' in pdf.filename else pdf.filename }}</p>
+                <a href="{{ pdf.pdf_url }}" target="_blank" 
+                   style="color: #EB51A2; text-decoration: none; font-weight: bold; display: block; margin-bottom: 8px;">
+                    👁️ Ver PDF
+                </a>
+                <form method="POST" action="{{ url_for('eliminar_pdf', pdf_id=pdf.id) }}" 
+                      onsubmit="return confirm('¿Eliminar este PDF?')">
+                    <button type="submit" style="background: red; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        🗑️ Eliminar
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Eliminar proyecto -->
+    <div style="margin-top: 30px; padding: 20px; background: #ffebee; border: 2px solid #f44336; border-radius: 10px;">
+        <p style="color: #666; margin-bottom: 15px;">
+            Eliminar este proyecto también eliminará <strong>{{ proyecto.images|length }} imágenes</strong> y <strong>{{ proyecto.pdffiles|length }} PDFs</strong> asociados. 
+            <br>Esta acción no se puede deshacer.
+        </p>
+        <a href="{{ url_for('eliminar_categoria', id=proyecto.id) }}" 
+           style="background: #f44336; color: white; padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none; font-weight: bold;"
+           onclick="return confirm('¿ESTÁS SEGURA? Se eliminarán {{ proyecto.images|length }} imágenes y {{ proyecto.pdffiles|length }} PDFs. Esta acción es irreversible.')">
+            🗑️ Eliminar Proyecto Completo
+        </a>
+    </div>
+</div>
+
+{% endblock %}
