@@ -81,7 +81,7 @@ init_db()
 
 # Utilidades
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
 # Rutas Públicas
 @app.route('/')
@@ -218,6 +218,11 @@ def subir_imagen(proyecto_id):
     
     return redirect(url_for('dashboard_panel'))
 
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(os.path.join(app.static_folder, 'uploads'), filename)
+
+
 # Eliminar Imagen
 @app.route('/dashboard/eliminar_imagen/<int:image_id>', methods=['POST'])
 @login_required
@@ -310,3 +315,4 @@ if __name__ == '__main__':
     # Crear directorios necesarios
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(host='0.0.0.0', port=5000, debug=True)
+
