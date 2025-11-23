@@ -92,6 +92,29 @@
     <p style="color: #666;">No hay proyectos creados aún</p>
     {% endfor %}
 </div>
+<!-- FORM SUBIR PDF -->
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('subir_pdf', proyecto_id=cat.id) }}">
+    <label>Título PDF (opcional)</label>
+    <input type="text" name="title">
+
+    <input type="file" name="pdf" accept="application/pdf" required>
+    <button type="submit">Subir PDF</button>
+</form>
+<!-- LISTA DE PDFs -->
+<div class="admin-pdf-list">
+    {% for pdf in cat.pdffiles %}
+    <div class="pdf-item">
+        <a href="{{ url_for('ver_pdf', filename=pdf.filename) }}" target="_blank">
+            📄 {{ pdf.title if pdf.title else pdf.filename }}
+        </a>
+
+        <form method="POST" action="{{ url_for('eliminar_pdf', pdf_id=pdf.id) }}">
+            <button class="delete-btn" onclick="return confirm('¿Eliminar este PDF?');">Eliminar</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
 
 <!-- Enlace para volver al sitio público -->
 <div style="margin-top: 20px;">
@@ -99,3 +122,4 @@
 </div>
 
 {% endblock %}
+
