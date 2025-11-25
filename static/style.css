@@ -852,3 +852,109 @@ button[style*="background: red"]:hover {
     background: #cc0000 !important;
     transform: translateY(-1px);
 }
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Espacio extra al final para que la barra flotante no tape contenido */
+body {
+    padding-bottom: 80px;
+}
+/* ESTILOS PARA FORMULARIO DE LOGIN */
+.login-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+    border-color: #4DCFCF;
+    outline: none;
+}
+
+.password-container {
+    position: relative;
+}
+
+.password-input {
+    padding-right: 50px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    font-size: 18px;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-password:hover {
+    background-color: #f0f0f0;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #EB51A2, #4DCFCF);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(235, 81, 162, 0.4);
+}
+
+/* Centrar el título del login */
+.login-title {
+    text-align: center;
+    color: #EB51A2;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
