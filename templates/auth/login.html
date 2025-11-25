@@ -7,10 +7,31 @@
     <label>Usuario</label>
     <input type="text" name="username" required>
 
-    <label>Contraseña</label>
-    <input type="password" name="password" required>
+    <div style="position: relative; display: inline-block; width: 100%;">
+        <label>Contraseña</label>
+        <input type="password" name="password" id="passwordField" required style="padding-right: 40px; width: 100%;">
+        <button type="button" id="togglePassword" style="position: absolute; right: 10px; top: 70%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px;">
+            👁️
+        </button>
+    </div>
 
     <button type="submit">Entrar</button>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('passwordField');
+    
+    togglePassword.addEventListener('click', function() {
+        // Cambiar el tipo de input
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        
+        // Cambiar el emoji del botón
+        this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+    });
+});
+</script>
 
 {% endblock %}
